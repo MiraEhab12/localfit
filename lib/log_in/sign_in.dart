@@ -27,6 +27,7 @@ const Center(
 child: Text(
 "Sign In",
 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+
 ),
 ),
 const SizedBox(height: 32),

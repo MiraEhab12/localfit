@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
+import 'package:localfit/clothesofwomen/productdetails.dart';
 import 'package:localfit/homescreen.dart';
 import 'package:localfit/log_in/forgotpassword.dart';
 import 'package:localfit/log_in/register.dart';
@@ -11,6 +12,7 @@ import 'dart:async';
 
 import 'package:localfit/splash/SplashScreen.dart';
 import 'package:localfit/themedata/themedata.dart';
+import 'package:localfit/clothesofwomen/woman_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -32,6 +34,8 @@ class MyApp extends StatelessWidget {
         RegisterScreen.routename:(context)=>RegisterScreen(),
         SignInScreen.routename:(context)=>SignInScreen(),
         ForgotPasswordScreen.routename:(context)=>ForgotPasswordScreen(),
+        Woman_screen.routename:(context)=>Woman_screen(),
+        Productdetails.routename:(context)=>Productdetails(),
       },
     );
   }

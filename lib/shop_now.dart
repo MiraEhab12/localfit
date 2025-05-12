@@ -7,6 +7,7 @@ import 'package:localfit/tabs/fav/fav_tab.dart';
 import 'package:localfit/tabs/prof/prof_tab.dart';
 import 'package:localfit/tabs/shop/shop_tab.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:localfit/clothesofwomen/woman_screen.dart';
 class ShopNow extends StatefulWidget {
   static const String routename='shop now';
 
@@ -75,8 +76,38 @@ class _ShopNowState extends State<ShopNow> {
                 ),
               ),
               const SizedBox(height: 16),
-
-
+SizedBox(
+  height: 28,
+),
+Padding(
+  padding: EdgeInsets.only(right:MediaQuery.of(context).size.width*0.63),
+  child: Text("shop by category", style:
+  GoogleFonts.inter(
+    textStyle:  TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+    ),
+  )
+ ),
+),
+SizedBox(
+  height: 40,
+),
+Text("woman",style: GoogleFonts.inter(
+  textStyle: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400
+  )
+),),
+              GestureDetector(
+                onTap:(){
+                  Navigator.of(context).pushNamed(Woman_screen.routename);
+                },
+                child: Image.asset("assets/images/womanbutton.png",
+width: MediaQuery.of(context).size.width*0.44,
+height: MediaQuery.of(context).size.height*0.30,
+                ),
+              )
             ],
           ),
         ),
