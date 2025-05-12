@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:localfit/clothesofwomen/dataclassforlist.dart';
 import 'package:localfit/clothesofwomen/productdetails.dart';
@@ -24,7 +25,6 @@ class Listofclothes extends StatelessWidget {
       },
       child: Container(
         width:160,
-      
           decoration: BoxDecoration(
               color: AppColors.mainlightcolor,
               borderRadius: BorderRadius.circular(16),
@@ -39,8 +39,13 @@ class Listofclothes extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(nameofimage),
+      GestureDetector(
+          onTap: (){},
+          child: Image.asset(Appassets.fav)
+      ),
+              Expanded(child: Image.asset(nameofimage,fit: BoxFit.cover,)),
               SizedBox(
                 height: 19,
               ),
@@ -63,7 +68,7 @@ class Listofclothes extends StatelessWidget {
                 ),),
             ],
           ),
-      
+
         ),
       ),
     );

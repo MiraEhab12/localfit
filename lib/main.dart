@@ -11,6 +11,8 @@ import 'package:localfit/shop_now.dart';
 import 'dart:async';
 
 import 'package:localfit/splash/SplashScreen.dart';
+import 'package:localfit/tabs/prof/elementsofprofile/help.dart';
+import 'package:localfit/tabs/shop/shop_tab.dart';
 import 'package:localfit/themedata/themedata.dart';
 import 'package:localfit/clothesofwomen/woman_screen.dart';
 
@@ -36,6 +38,8 @@ class MyApp extends StatelessWidget {
         ForgotPasswordScreen.routename:(context)=>ForgotPasswordScreen(),
         Woman_screen.routename:(context)=>Woman_screen(),
         Productdetails.routename:(context)=>Productdetails(),
+        ShopTab.routename:(context)=>ShopTab(),
+        Help.routename:(context)=>Help(),
       },
     );
   }

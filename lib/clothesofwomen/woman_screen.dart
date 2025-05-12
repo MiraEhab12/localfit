@@ -38,9 +38,10 @@ backgroundColor: AppColors.mainlightcolor,
           child: GridView.builder(
             itemCount: products.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,
-                mainAxisExtent: 294,
+                mainAxisExtent: 300,
                 crossAxisSpacing: 23, // مسافة بين الأعمدة
-                mainAxisSpacing: 11
+                mainAxisSpacing: 11,
+
             ),
             itemBuilder: (context,index){
               return Listofclothes(
