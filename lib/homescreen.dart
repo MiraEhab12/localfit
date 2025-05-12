@@ -19,8 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int selectedindex=0;
   List<Widget> tabs=[
     FavTab(),
-    ProfTab(),
     ShopTab(),
+    ProfTab(),
   ];
   @override
   Widget build(BuildContext context) {

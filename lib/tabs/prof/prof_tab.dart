@@ -5,6 +5,14 @@ class ProfTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text("helpppp")
+          ],
+        )
+      ],
+    );
   }
 }
