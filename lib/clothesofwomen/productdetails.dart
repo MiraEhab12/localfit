@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:localfit/appassets/appassets.dart';
 import 'package:localfit/appcolor/appcolors.dart';
-import 'package:localfit/appfonts/appfonts.dart';
 import 'package:localfit/clothesofwomen/dataclassforlist.dart';
-import 'package:localfit/tabs/shop/shop_tab.dart';
 
 class Productdetails extends StatefulWidget {
   static const String routename='product details';
@@ -92,14 +90,14 @@ class _ProductdetailsState extends State<Productdetails> {
                           )
                         ),
                         ),
-                        Icon(Icons.arrow_drop_down,size: 20,)
+                        Icon(Icons.arrow_drop_down,size: 30,)
                       ],
                     )
                 ),
                 SizedBox(
                   width: 24,
                 ),
-                ElevatedButton(onPressed:(){},
+                ElevatedButton(onPressed: (){},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
@@ -111,7 +109,7 @@ class _ProductdetailsState extends State<Productdetails> {
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
-                    child: Text("add to cart",style: Appfonts.interfont15weight400,)
+                    child: Text("Add to cart"),
 
                 ),
               ],
