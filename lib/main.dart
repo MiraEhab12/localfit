@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:localfit/splash/SplashScreen.dart';
 import 'package:localfit/tabs/prof/elementsofprofile/help.dart';
+import 'package:localfit/tabs/prof/elementsofprofile/personaldetailedscreen.dart';
 import 'package:localfit/tabs/shop/shop_tab.dart';
 import 'package:localfit/themedata/themedata.dart';
 import 'package:localfit/clothesofwomen/woman_screen.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
         Productdetails.routename:(context)=>Productdetails(),
         ShopTab.routename:(context)=>ShopTab(),
         Help.routename:(context)=>Help(),
+        Personaldetailedscreen.routename:(context)=>Personaldetailedscreen(),
       },
     );
   }
