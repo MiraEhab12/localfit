@@ -5,6 +5,8 @@ class MyThemeData{
   static final ThemeData lighttheme=ThemeData(
     scaffoldBackgroundColor: AppColors.mainlightcolor,
 primaryColor: AppColors.mainlightcolor,
-
+appBarTheme: AppBarTheme(
+  color: AppColors.mainlightcolor,
+)
   );
 }
