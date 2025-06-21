@@ -147,6 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       setState(() => isLoading = false);
 
+
       if (response['success'] == true) {
         showSnackBar('Registration successful!');
         Navigator.pushNamedAndRemoveUntil(
