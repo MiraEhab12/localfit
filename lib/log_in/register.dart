@@ -155,6 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           HomeScreen.routename,
               (route) => false,
         );
+
       } else {
         final error = response['error']?.toString().toLowerCase() ?? '';
         final message = response['message'] ?? 'Registration failed';
