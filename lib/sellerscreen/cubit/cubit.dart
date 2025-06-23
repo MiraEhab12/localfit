@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:localfit/sellerscreen/cubit/states.dart';
 import 'package:http/http.dart' as http;
 
+
 class AddProductCubit extends Cubit<AddProductState> {
   AddProductCubit() : super(AddProductInitial());
 

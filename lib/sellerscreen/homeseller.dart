@@ -11,6 +11,7 @@ class Homeseller extends StatefulWidget {
   State<Homeseller> createState() => _HomesellerState();
 }
 
+
 class _HomesellerState extends State<Homeseller> {
   GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
   int selectedindex=0;

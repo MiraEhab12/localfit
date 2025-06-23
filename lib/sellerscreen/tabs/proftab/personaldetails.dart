@@ -8,6 +8,7 @@ class Personaldetailedscreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   @override
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
