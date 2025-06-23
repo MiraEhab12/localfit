@@ -12,6 +12,7 @@ class ProfTab extends StatelessWidget {
   List <String> nameoficons=[
     'Personal details',
     'Help',
+
     'contact us',
     'Log out'
   ];

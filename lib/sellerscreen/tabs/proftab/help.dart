@@ -40,6 +40,7 @@ class Help extends StatelessWidget {
             SizedBox(
               height: 16,
             ),
+
             Text("your orders appear in the “my order” section with real-time status updates",
               style: Appfonts.interfont14weight400,),
             SizedBox(

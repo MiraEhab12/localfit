@@ -6,6 +6,7 @@ class AddProductCubit extends Cubit<AddProductState> {
   AddProductCubit() : super(AddProductInitial());
 
   String name = '';
+
   String price = '';
   String description = '';
   String? imagePath;

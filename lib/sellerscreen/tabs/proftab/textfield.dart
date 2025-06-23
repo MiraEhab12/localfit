@@ -7,6 +7,7 @@ class Textfieldinpersonaldatailsscreen extends StatelessWidget {
 
 
   const Textfieldinpersonaldatailsscreen({
+
     super.key,
     required this.label,
     required this.controller,

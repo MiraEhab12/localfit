@@ -27,6 +27,7 @@ class Personaldetailedscreen extends StatelessWidget {
               height: 12,
             ),
             Textfieldinpersonaldatailsscreen(
+
               label: 'first names',
               controller: firstNameController,
             ),

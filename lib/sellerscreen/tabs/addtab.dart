@@ -64,6 +64,7 @@ class _AddTabState extends State<AddTab> {
                     padding: const EdgeInsets.only(left: 12),
                     child: Column(
 
+
                       children: [
                         GestureDetector(
                           onTap: () => _pickImage(context),
