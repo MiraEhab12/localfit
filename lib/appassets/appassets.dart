@@ -13,5 +13,5 @@ class Appassets{
   static const String ret="assets/images/return.png";
   static const String help="assets/images/help.png";
   static const String fav="assets/images/fav.png";
-
+  static const String shopping="assets/images/shopping.png";
 }

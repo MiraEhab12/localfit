@@ -1,76 +1,102 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_onboarding_slider/background_image.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:localfit/clothesofwomen/dataclassforlist.dart';
+import 'package:localfit/api_manager/responses/productsofbrands.dart';
+import 'package:localfit/appassets/appassets.dart';
+import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/clothesofwomen/productdetails.dart';
-
-import '../appassets/appassets.dart';
-import '../appcolor/appcolors.dart';
+import 'package:localfit/cubit/favcubit.dart';
 
 class Listofclothes extends StatelessWidget {
-  String nameofclothes;
-  String nameofimage;
-  double price;
-   Listofclothes({required this.nameofclothes,required this.nameofimage,required this.price});
+  static const String routename='list of clothes';
+  final Responseproductsofbrands infoproduct;
+  Listofclothes({required this.infoproduct});
 
   @override
   Widget build(BuildContext context) {
-    var width=MediaQuery.of(context).size.width;
-    var height=MediaQuery.of(context).size.height;
-    return   GestureDetector(
-      onTap: (){
-        Navigator.of(context).pushNamed(Productdetails.routename,arguments:
-        product(name: nameofclothes, image: nameofimage, price: price)
-        );
+    return GestureDetector(
+      onTap: () {
+       Navigator.pushNamed(context, Productdetails.routename,arguments: infoproduct
+       );
       },
       child: Container(
-        width:160,
-          decoration: BoxDecoration(
-              color: AppColors.mainlightcolor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 4,
-                  offset:Offset(0,4),
-                )
-              ]
-          ),
+        width: 160,
+        decoration: BoxDecoration(
+          color: AppColors.mainlightcolor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 4,
+              offset: Offset(0, 4),
+              color: Colors.black26,
+            )
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-      GestureDetector(
-          onTap: (){},
-          child: Image.asset(Appassets.fav)
-      ),
-              Expanded(child: Image.asset(nameofimage,fit: BoxFit.cover,)),
-              SizedBox(
-                height: 19,
+              BlocBuilder<FavCubit, List<Responseproductsofbrands>>(
+                builder: (context, favoriteList) {
+                  final isFavorite = favoriteList.any((p) => p.producTID == infoproduct.producTID);
+                  return GestureDetector(
+                    onTap: () {
+                      context.read<FavCubit>().toggleFavorite(infoproduct);
+    final snackBar = SnackBar(
+    content: Text(isFavorite
+    ? 'remove from favourite'
+        : 'add to favourite'),
+    duration: Duration(seconds: 2),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    },
+                    child: Icon(
+                      Icons.favorite,
+                      color: isFavorite ? Colors.red : Colors.grey,
+                      size: 30,
+                    ),
+                  );
+                },
               ),
-              Text(nameofclothes,
-              style: GoogleFonts.inter(
-                textStyle: TextStyle(
-                  fontWeight: FontWeight.w300,
-                  fontSize: 12,
-                )
-              ),),
-              SizedBox(
-                height: 5,
+              SizedBox(height: 8),
+              Expanded(
+                child: Image.network(
+                  "https://localfit.runasp.net${infoproduct.productIMGUrl ?? ""}",
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.broken_image_outlined);
+                  },
+                ),
               ),
-              Text("EGP$price",
+              SizedBox(height: 19),
+              Text(
+                infoproduct.producTNAME ?? "",
                 style: GoogleFonts.inter(
-                    textStyle: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: 16,
-                    )
-                ),),
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.w300,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                "EGP${infoproduct.price}",
+                style: GoogleFonts.inter(
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.w300,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
             ],
           ),
-
         ),
       ),
     );
   }
-  }
+}
+

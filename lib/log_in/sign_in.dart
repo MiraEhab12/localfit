@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:localfit/log_in/forgotpassword.dart';
 import 'package:localfit/log_in/register.dart';
-import '../api_manager_for_sign_in/apimanager.dart';
+import '../api_manager/apimanager.dart';
+
 
 class SignInScreen extends StatefulWidget {
   static const String routename = 'sign in';

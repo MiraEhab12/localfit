@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:localfit/api_manager/responses/productsofbrands.dart';
 class ApiManager{
    Future <Map <String,dynamic>>getemailandpassword(String email, String password) async{
     Uri url=Uri.parse("https://localfit.runasp.net/api/user/login");
@@ -74,5 +75,11 @@ class ApiManager{
        };
      }
    }
-
+Future <Responseproductsofbrands> getListOfClothesProductsOfBrands()async{
+     Uri url= Uri.https('localfit.runasp.net','api/product/getproducts');
+     http.Response response=await http.get(url);
+     var json=jsonDecode(response.body);
+     Responseproductsofbrands responseProductsofbrands= Responseproductsofbrands.fromJson(json);
+     return responseProductsofbrands;
+}
 }

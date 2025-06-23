@@ -2,12 +2,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:localfit/clothesofwomen/productdetails.dart';
+import 'package:localfit/cubit/favcubit.dart';
 import 'package:localfit/homescreen.dart';
+import 'package:localfit/listofclothes/listofclothes.dart';
 import 'package:localfit/log_in/forgotpassword.dart';
 import 'package:localfit/log_in/register.dart';
 import 'package:localfit/log_in/sign_in.dart';
 import 'package:localfit/onboarding/onboarding.dart';
+import 'package:localfit/sellerscreen/homeseller.dart';
 import 'package:localfit/shop_now.dart';
 import 'dart:async';
 
@@ -17,6 +21,9 @@ import 'package:localfit/tabs/prof/elementsofprofile/personaldetailedscreen.dart
 import 'package:localfit/tabs/shop/shop_tab.dart';
 import 'package:localfit/themedata/themedata.dart';
 import 'package:localfit/clothesofwomen/woman_screen.dart';
+
+import 'cubit/cartcubit.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +35,16 @@ void main() async {
   } catch (e) {
     print("❌ Firebase init error: $e");
   }
-  runApp(MyApp());
+
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => CartCubit()),
+        BlocProvider(create: (_) => FavCubit()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -52,6 +68,7 @@ class MyApp extends StatelessWidget {
         ShopTab.routename:(context)=>ShopTab(),
         Help.routename:(context)=>Help(),
         Personaldetailedscreen.routename:(context)=>Personaldetailedscreen(),
+        Homeseller.routename:(context)=>Homeseller()
       },
     );
   }

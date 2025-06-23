@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:localfit/appassets/appassets.dart';
+import 'package:localfit/appfonts/appfonts.dart';
+import 'package:localfit/sellerscreen/homeseller.dart';
 import 'package:localfit/tabs/prof/elementsofprofile/help.dart';
 import 'package:localfit/tabs/prof/elementsofprofile/personaldetailedscreen.dart';
 
@@ -35,10 +37,15 @@ index==2? Navigator.push(context, MaterialPageRoute(builder: (_)=>Personaldetail
           child: Row(
             children: [
               Image.asset(imageoficons[index]),
-              Text(nameoficons[index])
+              Text(nameoficons[index]),
             ],
           ),
-        )
+        ),
+        InkWell(
+            onTap: (){
+              Navigator.pushNamed(context, Homeseller.routename);
+            },
+            child: Text("sell with us",style:Appfonts.interfont24weight400,)),
       ],
     );
   }
