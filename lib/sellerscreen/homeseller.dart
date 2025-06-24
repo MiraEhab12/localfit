@@ -5,7 +5,7 @@ import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/sellerscreen/tabs/addtab.dart';
 import 'package:localfit/sellerscreen/tabs/proftab/proftab.dart';
 class Homeseller extends StatefulWidget {
-  static const String routename='home';
+  static const String routename='home seller';
 
   @override
   State<Homeseller> createState() => _HomesellerState();

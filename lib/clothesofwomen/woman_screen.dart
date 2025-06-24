@@ -6,13 +6,35 @@ import 'package:localfit/cubit/cubitListofproductsofbrands.dart';
 import 'package:localfit/cubit/states.dart';
 import 'package:localfit/listofclothes/listofclothes.dart';
 
-class Woman_screen extends StatelessWidget {
+class Woman_screen extends StatefulWidget {
   static const String routename = 'womanscreen';
 
   @override
+  State<Woman_screen> createState() => _Woman_screenState();
+}
+
+class _Woman_screenState extends State<Woman_screen> {
+  late CubitListOfProductOfBrand cubit;
+  bool isSeller = false;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    if (arg is bool) {
+      isSeller = arg;
+    }
+  }
+  @override
+  void initState() {
+    super.initState();
+    cubit = CubitListOfProductOfBrand();
+    cubit.getproductsofbrand();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => CubitListOfProductOfBrand()..getproductsofbrand(),
+    return BlocProvider.value(
+      value: cubit,
       child: Scaffold(
         backgroundColor: AppColors.mainlightcolor,
         appBar: AppBar(
@@ -26,6 +48,19 @@ class Woman_screen extends StatelessWidget {
             ),
           ),
           backgroundColor: AppColors.mainlightcolor,
+          actions: isSeller? [
+            IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () async {
+                final result =
+                await Navigator.pushNamed(context, '/add'); // تأكدي من اسم الرُوت
+
+                if (result == true) {
+                  cubit.getproductsofbrand();
+                }
+              },
+            )
+          ] :null
         ),
         body: BlocBuilder<CubitListOfProductOfBrand, Homestate>(
           builder: (context, state) {
@@ -33,16 +68,16 @@ class Woman_screen extends StatelessWidget {
               return Center(child: CircularProgressIndicator());
             } else if (state is GetProductsErorrState) {
               return Center(
-                  child: Text("Something went wrong, try again later"));
+                  child: Text("حدث خطأ أثناء تحميل المنتجات، حاول مرة أخرى"));
             } else if (state is GetProductsSucessfulState) {
-              var bloc = BlocProvider.of<CubitListOfProductOfBrand>(context);
-              if (bloc.listofproducts.isEmpty) {
-                return Center(child: Text("No products available"));
+              if (cubit.listofproducts.isEmpty) {
+                return Center(child: Text("لا توجد منتجات حالياً"));
               }
+
               return Padding(
                 padding: const EdgeInsets.all(16),
                 child: GridView.builder(
-                  itemCount: bloc.listofproducts.length,
+                  itemCount: cubit.listofproducts.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisExtent: 300,
@@ -51,12 +86,13 @@ class Woman_screen extends StatelessWidget {
                   ),
                   itemBuilder: (context, index) {
                     return Listofclothes(
-                        infoproduct: bloc.listofproducts[index]);
+                      infoproduct: cubit.listofproducts[index],
+                    );
                   },
                 ),
               );
             } else {
-              return Center(child: Text("Unexpected error"));
+              return Center(child: Text("حدث خطأ غير متوقع"));
             }
           },
         ),

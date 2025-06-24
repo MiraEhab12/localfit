@@ -4,9 +4,49 @@ import 'package:localfit/api_manager/responses/productsofbrands.dart';
 import 'package:localfit/appassets/appassets.dart';
 import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/cubit/favcubit.dart';
+import '../../clothesofwomen/productwithsize.dart';
 import '../../cubit/cartcubit.dart';
 
-class FavTab extends StatelessWidget {
+class FavTab extends StatefulWidget {
+  @override
+  State<FavTab> createState() => _FavTabState();
+}
+
+class _FavTabState extends State<FavTab> {
+  // متغير لتخزين الحجم المحدد لكل منتج (حسب اندكسه)
+  Map<int, String> selectedSizes = {};
+
+  void _showSizeBottomSheet(int index) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        List<String> sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: sizes.map((size) {
+              return Column(
+                children: [
+                  ListTile(
+                    title: Text(size),
+                    onTap: () {
+                      setState(() {
+                        selectedSizes[index] = size;
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  Divider(),
+                ],
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,6 +60,8 @@ class FavTab extends StatelessWidget {
             itemCount: favoriteList.length,
             itemBuilder: (context, index) {
               final product = favoriteList[index];
+              final selectedSize = selectedSizes[index] ?? "Select Size";
+
               return Container(
                 color: AppColors.whitecolor,
                 width: double.infinity,
@@ -61,11 +103,11 @@ class FavTab extends StatelessWidget {
                                           borderRadius: BorderRadius.zero),
                                     ),
                                     onPressed: () {
-                                      // اختيار الحجم لو عايزة
+                                      _showSizeBottomSheet(index);
                                     },
                                     child: Row(
                                       children: [
-                                        Text("Size "),
+                                        Text(selectedSize),
                                         Icon(Icons.arrow_drop_down_sharp,
                                             color: Color(0xffE0E0E0))
                                       ],
@@ -81,10 +123,28 @@ class FavTab extends StatelessWidget {
                                           borderRadius: BorderRadius.zero),
                                     ),
                                     onPressed: () {
-                                      context.read<CartCubit>().addToCart(product);
+                                      if (selectedSizes[index] == null) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                "Please select a size before adding to cart"),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      final item = ProductWithSizeAndQuantity(
+                                        product: product,
+                                        selectedSize: selectedSizes[index]!,
+                                        quantity: 1,
+                                      );
+
+                                      context.read<CartCubit>().addToCart(item);
+
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text("Added to cart ✅"),
+                                          content:
+                                          Text("Added to cart with size ${selectedSizes[index]} ✅"),
                                           duration: Duration(seconds: 2),
                                         ),
                                       );
@@ -98,7 +158,6 @@ class FavTab extends StatelessWidget {
                         )
                       ],
                     ),
-
                     Positioned(
                       top: 8,
                       right: 8,

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:localfit/appcolor/appcolors.dart';
@@ -11,6 +10,8 @@ import '../cubit/cubit.dart';
 import '../cubit/states.dart';
 
 class AddTab extends StatefulWidget {
+  static const String routename = '/add';  // تأكدي تستخدمينه في Navigator
+
   const AddTab({super.key});
 
   @override
@@ -20,11 +21,12 @@ class AddTab extends StatefulWidget {
 class _AddTabState extends State<AddTab> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController(); // اضافه كنترولر للوصف
+  final TextEditingController descriptionController = TextEditingController();
   File? _image;
 
   Future<void> _pickImage(BuildContext context) async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+    await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
@@ -49,8 +51,9 @@ class _AddTabState extends State<AddTab> {
               listener: (context, state) {
                 if (state is AddProductSuccess) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Done')),
+                    SnackBar(content: Text('تمت الإضافة بنجاح')),
                   );
+                  Navigator.pop(context, true); // مهم جدًا هنا
                 } else if (state is AddProductError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.message)),
@@ -64,8 +67,6 @@ class _AddTabState extends State<AddTab> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 12),
                     child: Column(
-
-
                       children: [
                         GestureDetector(
                           onTap: () => _pickImage(context),
@@ -89,11 +90,15 @@ class _AddTabState extends State<AddTab> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 100),
+                        SizedBox(height: 100),
                         Row(
                           children: [
-                            const Text("Item name", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
-                            const SizedBox(width: 20),
+                            Text(
+                              "Item name",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.w400),
+                            ),
+                            SizedBox(width: 20),
                             Container(
                               width: 224,
                               height: 36,
@@ -105,19 +110,24 @@ class _AddTabState extends State<AddTab> {
                                 controller: nameController,
                                 keyboardType: TextInputType.text,
                                 onChanged: cubit.updateName,
-                                decoration: const InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 8),
                                   border: InputBorder.none,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 50),
+                        SizedBox(height: 50),
                         Row(
                           children: [
-                            const Text("Item price", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
-                            const SizedBox(width: 20),
+                            Text(
+                              "Item price",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.w400),
+                            ),
+                            SizedBox(width: 20),
                             Container(
                               width: 224,
                               height: 36,
@@ -129,19 +139,24 @@ class _AddTabState extends State<AddTab> {
                                 controller: priceController,
                                 keyboardType: TextInputType.number,
                                 onChanged: cubit.updatePrice,
-                                decoration: const InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 8),
                                   border: InputBorder.none,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 50),
+                        SizedBox(height: 50),
                         Row(
                           children: [
-                            const Text("Description", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
-                            const SizedBox(width: 20),
+                            Text(
+                              "Description",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.w400),
+                            ),
+                            SizedBox(width: 20),
                             Container(
                               width: 224,
                               height: 80,
@@ -154,38 +169,39 @@ class _AddTabState extends State<AddTab> {
                                 keyboardType: TextInputType.text,
                                 maxLines: 3,
                                 onChanged: cubit.updateDescription,
-                                decoration: const InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 8),
                                   border: InputBorder.none,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 30),
+                        SizedBox(height: 30),
                         SizedBox(
                           width: 200,
                           height: 44,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.maindarkcolor,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              )
-                            ),
+                                backgroundColor: AppColors.maindarkcolor,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                )),
                             onPressed: state is AddProductLoading
                                 ? null
                                 : () {
                               cubit.sendProduct();
                             },
                             child: state is AddProductLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text('Upload',style:TextStyle(
-                              fontSize: 22,
-                            )),),
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text(
+                              'Upload',
+                              style: TextStyle(fontSize: 22),
+                            ),
+                          ),
                         ),
-
                       ],
                     ),
                   ),

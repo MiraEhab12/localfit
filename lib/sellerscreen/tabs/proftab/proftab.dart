@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:localfit/appassets/appassets.dart';
+import 'package:localfit/homescreen.dart';
 import 'package:localfit/sellerscreen/tabs/proftab/help.dart';
 import 'package:localfit/sellerscreen/tabs/proftab/personaldetails.dart';
 class ProfTab extends StatelessWidget {
@@ -34,7 +35,13 @@ class ProfTab extends StatelessWidget {
                 Text(nameoficons[index])
               ],
             ),
-          )
+          ),
+        InkWell(
+          onTap: (){
+            Navigator.pushNamed(context, HomeScreen.routename);
+          },
+          child: Text("data"),
+        )
       ],
     );
   }

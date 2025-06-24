@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_onboarding_slider/flutter_onboarding_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:localfit/api_manager/responses/productsofbrands.dart';
-import 'package:localfit/appassets/appassets.dart';
 import 'package:localfit/appcolor/appcolors.dart';
-import 'package:localfit/clothesofwomen/dataclassforlist.dart';
+import 'package:localfit/clothesofwomen/productwithsize.dart';
 import 'package:localfit/cubit/cartcubit.dart';
-import 'package:localfit/tabs/shop/shop_tab.dart';
 
 class Productdetails extends StatefulWidget {
-  static const String routename='product details';
+  static const String routename = 'product details';
 
   const Productdetails({super.key});
 
@@ -25,8 +22,7 @@ class _ProductdetailsState extends State<Productdetails> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        List<String> sizes = ['S', 'M', 'L','XL','XXL'];
-
+        List<String> sizes = ['S', 'M', 'L', 'XL', 'XXL'];
         return Container(
           padding: EdgeInsets.all(16),
           child: Column(
@@ -40,10 +36,10 @@ class _ProductdetailsState extends State<Productdetails> {
                       setState(() {
                         selectedSize = size;
                       });
-                      Navigator.pop(context); // Close the bottom sheet
+                      Navigator.pop(context);
                     },
                   ),
-              Divider(),
+                  Divider(),
                 ],
               );
             }).toList(),
@@ -55,9 +51,12 @@ class _ProductdetailsState extends State<Productdetails> {
 
   @override
   Widget build(BuildContext context) {
-   Responseproductsofbrands receiveDetails= ModalRoute.of(context)!.settings.arguments as Responseproductsofbrands;
-    var width=MediaQuery.of(context).size.width;
-    var height=MediaQuery.of(context).size.height;
+    final Responseproductsofbrands receiveDetails =
+    ModalRoute.of(context)!.settings.arguments as Responseproductsofbrands;
+
+    var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.mainlightcolor,
@@ -65,66 +64,85 @@ class _ProductdetailsState extends State<Productdetails> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-         Image.network(
-           "https://localfit.runasp.net${receiveDetails.productIMGUrl ?? ''} ",
-          fit: BoxFit.fitWidth,
-            width: width*1,
-            height: height*0.6,
-    errorBuilder: (context, error, stackTrace) {
-    return Icon(Icons.broken_image_outlined);
-    }
+          Image.network(
+            "https://localfit.runasp.net${receiveDetails.productIMGUrl??''}",
+            fit: BoxFit.fill,
+            width: width,
+            height: height * 0.6,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(Icons.broken_image_outlined);
+            },
           ),
-          Text(receiveDetails.producTNAME??''),
-          Text("${receiveDetails.price}"),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 27,horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              receiveDetails.producTNAME ?? '',
+              style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "${receiveDetails.price} EGP",
+              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 27, horizontal: 16),
             child: Row(
               children: [
-                ElevatedButton(onPressed:_showSizeBottomSheet,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Color(0xffe0e0e0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero
-                      )
-                    ),
-                    child: Row(
-                      children: [
-                        Text(selectedSize??"selected size",
+                ElevatedButton(
+                  onPressed: _showSizeBottomSheet,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Color(0xffe0e0e0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        selectedSize ?? "Select Size",
                         style: GoogleFonts.inter(
-                          textStyle: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400
-                          )
+                          textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
                         ),
-                        ),
-                        Icon(Icons.arrow_drop_down,size: 30,)
-                      ],
-                    )
+                      ),
+                      Icon(Icons.arrow_drop_down, size: 30),
+                    ],
+                  ),
                 ),
-                SizedBox(
-                  width: 24,
-                ),
-                ElevatedButton(onPressed: (){
-                  context.read<CartCubit>().addToCart(receiveDetails);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                SizedBox(width: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    if (selectedSize?.isEmpty ?? true) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Please select a size before adding to cart")),
+                      );
+                      return;
+                    }
+
+                    final item = ProductWithSizeAndQuantity(
+                      product: receiveDetails,
+                      selectedSize: selectedSize!,
+                      quantity: 1,
+                    );
+
+                    context.read<CartCubit>().addToCart(item);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text("add to cart ✅"),
-                    duration: Duration(seconds: 2),));
-                },
+                        content: Text("Added to cart with size $selectedSize ✅"),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(
-                      vertical: 7,
-                      horizontal: 55,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
+                    padding: EdgeInsets.symmetric(vertical: 7, horizontal: 55),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                   ),
-                    child: Text("Add to cart"),
-
+                  child: Text("Add to cart"),
                 ),
               ],
             ),

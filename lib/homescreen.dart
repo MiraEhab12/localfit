@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:localfit/appcolor/appcolors.dart';
+import 'package:localfit/search%20screen.dart';
 import 'package:localfit/shop_now.dart';
 import 'package:localfit/tabs/fav/fav_tab.dart';
 import 'package:localfit/tabs/prof/prof_tab.dart';
@@ -55,10 +56,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    IconButton(onPressed: (){},
-                      padding: const EdgeInsets.only(bottom: 63,left: 32),
-                      icon: const Icon(Icons.search),color: AppColors.whitecolor,
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, SearchScreen.routename);
+                      },
+                      padding: const EdgeInsets.only(bottom: 63, left: 32),
+                      icon: const Icon(Icons.search),
+                      color: AppColors.whitecolor,
                     ),
+
                     const Expanded(
 
                       child: Text("LocalFit",

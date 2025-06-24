@@ -43,7 +43,7 @@ index==2? Navigator.push(context, MaterialPageRoute(builder: (_)=>Personaldetail
         ),
         InkWell(
             onTap: (){
-              Navigator.pushNamed(context, Homeseller.routename);
+              Navigator.pushNamed(context, Homeseller.routename,arguments: true);
             },
             child: Text("sell with us",style:Appfonts.interfont24weight400,)),
       ],

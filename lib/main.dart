@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:localfit/checkout.dart';
 import 'package:localfit/clothesofwomen/productdetails.dart';
 import 'package:localfit/cubit/favcubit.dart';
 import 'package:localfit/homescreen.dart';
@@ -11,7 +12,9 @@ import 'package:localfit/log_in/forgotpassword.dart';
 import 'package:localfit/log_in/register.dart';
 import 'package:localfit/log_in/sign_in.dart';
 import 'package:localfit/onboarding/onboarding.dart';
+import 'package:localfit/search%20screen.dart';
 import 'package:localfit/sellerscreen/homeseller.dart';
+import 'package:localfit/sellerscreen/tabs/addtab.dart';
 import 'package:localfit/shop_now.dart';
 import 'dart:async';
 
@@ -68,7 +71,9 @@ class MyApp extends StatelessWidget {
         ShopTab.routename:(context)=>ShopTab(),
         Help.routename:(context)=>Help(),
         Personaldetailedscreen.routename:(context)=>Personaldetailedscreen(),
-        Homeseller.routename:(context)=>Homeseller()
+        Homeseller.routename:(context)=>Homeseller(),
+        AddTab.routename: (context) => AddTab(),
+        SearchScreen.routename: (context) => SearchScreen(),
       },
     );
   }

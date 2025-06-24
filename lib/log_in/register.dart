@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:localfit/homescreen.dart';
 import 'sign_in.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -62,7 +63,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, HomeScreen.routename);
+              },
               child: Text("Register"),
             ),
             TextButton(
