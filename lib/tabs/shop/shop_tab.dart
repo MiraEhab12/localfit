@@ -7,7 +7,9 @@ import 'package:localfit/appassets/appassets.dart';
 import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/appfonts/appfonts.dart';
 import 'package:localfit/checkout.dart';
+import 'package:localfit/clothesofwomen/woman_screen.dart';
 import 'package:localfit/cubit/cartcubit.dart';
+import 'package:localfit/homescreen.dart';
 
 import '../../clothesofwomen/productwithsize.dart';
 
@@ -123,7 +125,7 @@ class ShopTab extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text("MyCart", style: Appfonts.interfont24weight400),
+        title: Text("MyCart", style: Appfonts.interfont24weight400),centerTitle: true,
       ),
       body: BlocBuilder<CartCubit, List<ProductWithSizeAndQuantity>>(
         builder: (context, cartItems) {
@@ -132,6 +134,9 @@ class ShopTab extends StatelessWidget {
               padding: const EdgeInsets.only(left: 60),
               child: Column(
                 children: [
+                  SizedBox(
+                    height: 28,
+                  ),
                   Image.asset(Appassets.shopping),
                   SizedBox(height: 37),
                   Text("Cart is empty 🛒", style: Appfonts.interfont24weight400),
@@ -147,9 +152,15 @@ class ShopTab extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(Radius.circular(8)))),
                     onPressed: () {
-                      Navigator.pushNamed(context, '/home');
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomeScreen()),
+                            (route) => false,  // ده يعني يمسح كل الصفحات اللي قبلها
+                      );
                     },
-                    child: Text("Continue Shopping"),
+                    child: Text("Continue Shopping",style: TextStyle(
+                      fontSize: 16
+                    ),),
                   ),
                 ],
               ),
@@ -169,7 +180,7 @@ class ShopTab extends StatelessWidget {
                     return Container(
                       color: AppColors.ligthgray,
                       width: double.infinity,
-                      height: 155,
+                      height: height*0.19,
                       child: Stack(
                         children: [
                           Padding(
@@ -212,6 +223,7 @@ class ShopTab extends StatelessWidget {
                                           SizedBox(width: 10),
                                           ElevatedButton(
                                             style: ElevatedButton.styleFrom(
+                                              fixedSize: Size(104,36),
                                               backgroundColor: Colors.white,
                                               foregroundColor: Colors.black,
                                               side: BorderSide(color: Color(0xffE0E0E0), width: 2),
@@ -220,11 +232,14 @@ class ShopTab extends StatelessWidget {
                                             onPressed: () {
                                               _showQuantityBottomSheet(context, index, item.quantity);
                                             },
-                                            child: Row(
-                                              children: [
-                                                Text("Qty: ${item.quantity}", style: Appfonts.interfont14weight400),
-                                                Icon(Icons.arrow_drop_down_sharp, color: Color(0xffE0E0E0)),
-                                              ],
+                                            child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Row(
+                                                children: [
+                                                  Text("Qty: ${item.quantity}",overflow: TextOverflow.ellipsis, style: Appfonts.interfont14weight400),
+                                                  Icon(Icons.arrow_drop_down_sharp, color: Color(0xffE0E0E0)),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ],

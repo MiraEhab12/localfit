@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:localfit/checkout.dart';
 import 'package:localfit/clothesofwomen/productdetails.dart';
 import 'package:localfit/cubit/favcubit.dart';
 import 'package:localfit/homescreen.dart';
@@ -22,6 +21,7 @@ import 'package:localfit/splash/SplashScreen.dart';
 import 'package:localfit/tabs/prof/elementsofprofile/help.dart';
 import 'package:localfit/tabs/prof/elementsofprofile/personaldetailedscreen.dart';
 import 'package:localfit/tabs/shop/shop_tab.dart';
+import 'package:localfit/thankyou.dart';
 import 'package:localfit/themedata/themedata.dart';
 import 'package:localfit/clothesofwomen/woman_screen.dart';
 
@@ -74,6 +74,8 @@ class MyApp extends StatelessWidget {
         Homeseller.routename:(context)=>Homeseller(),
         AddTab.routename: (context) => AddTab(),
         SearchScreen.routename: (context) => SearchScreen(),
+        ThankYouScreen.routename:(context)=>ThankYouScreen(),
+
       },
     );
   }

@@ -63,6 +63,20 @@ class Personaldetailedscreen extends StatelessWidget {
             Textfieldinpersonaldatailsscreen(
               label: 'mobile',
               controller: phoneController,
+            ),
+            SizedBox(height: 117,),
+            ElevatedButton(
+
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.black,
+shape: RoundedRectangleBorder(
+  borderRadius: BorderRadius.zero
+)
+              ),
+                onPressed: (){},
+
+                child: Text("SaveChanges")
+
             )
           ],
         ),

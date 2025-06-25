@@ -3,19 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:localfit/api_manager/responses/productsofbrands.dart';
 import 'package:localfit/appassets/appassets.dart';
 import 'package:localfit/appcolor/appcolors.dart';
+import 'package:localfit/appfonts/appfonts.dart';
 import 'package:localfit/cubit/favcubit.dart';
 import '../../clothesofwomen/productwithsize.dart';
 import '../../cubit/cartcubit.dart';
-
 class FavTab extends StatefulWidget {
   @override
   State<FavTab> createState() => _FavTabState();
 }
-
 class _FavTabState extends State<FavTab> {
-  // متغير لتخزين الحجم المحدد لكل منتج (حسب اندكسه)
   Map<int, String> selectedSizes = {};
-
   void _showSizeBottomSheet(int index) {
     showModalBottomSheet(
       context: context,
@@ -46,15 +43,21 @@ class _FavTabState extends State<FavTab> {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
+    var width=MediaQuery.of(context).size.width;
+    var heidth=MediaQuery.of(context).size.height;
     return Scaffold(
-      appBar: AppBar(title: Text("Favorites")),
+      appBar: AppBar(title: Text("My Favorites",style:TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w400
+      ),),centerTitle: true,
+      ),
       body: BlocBuilder<FavCubit, List<Responseproductsofbrands>>(
         builder: (context, favoriteList) {
           if (favoriteList.isEmpty) {
-            return Center(child: Text("No favorites yet 🛒"));
+            return Center(child: Text("No favorites yet",style: TextStyle(
+                fontSize: 22),));
           }
           return ListView.builder(
             itemCount: favoriteList.length,
@@ -65,7 +68,7 @@ class _FavTabState extends State<FavTab> {
               return Container(
                 color: AppColors.whitecolor,
                 width: double.infinity,
-                height: 155,
+                height:heidth*0.19,
                 padding: EdgeInsets.all(8),
                 child: Stack(
                   children: [
@@ -73,8 +76,8 @@ class _FavTabState extends State<FavTab> {
                       children: [
                         Image.network(
                           "https://localfit.runasp.net${product.productIMGUrl ?? ''}",
-                          width: 100,
-                          height: 100,
+                          width: width*0.26,
+                          height: heidth*0.12,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               Icon(Icons.broken_image_outlined),

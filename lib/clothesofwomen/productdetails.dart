@@ -112,29 +112,46 @@ class _ProductdetailsState extends State<Productdetails> {
                 ),
                 SizedBox(width: 24),
                 ElevatedButton(
-                  onPressed: () {
-                    if (selectedSize?.isEmpty ?? true) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Please select a size before adding to cart")),
+                    onPressed: () {
+                      if (selectedSize?.isEmpty ?? true) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Please select a size before adding to cart")),
+                        );
+                        return;
+                      }
+
+                      final cartItems = context.read<CartCubit>().state;
+
+                      final alreadyInCart = cartItems.any(
+                            (item) => item.product.producTID == receiveDetails.producTID,
                       );
-                      return;
-                    }
 
-                    final item = ProductWithSizeAndQuantity(
-                      product: receiveDetails,
-                      selectedSize: selectedSize!,
-                      quantity: 1,
-                    );
+                      if (alreadyInCart) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Already in cart ✅"),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
 
-                    context.read<CartCubit>().addToCart(item);
+                      final item = ProductWithSizeAndQuantity(
+                        product: receiveDetails,
+                        selectedSize: selectedSize!,
+                        quantity: 1,
+                      );
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Added to cart with size $selectedSize ✅"),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
+                      context.read<CartCubit>().addToCart(item);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Added to cart with size $selectedSize ✅"),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+
 
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,

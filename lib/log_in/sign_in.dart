@@ -1,68 +1,43 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:localfit/homescreen.dart';
 import 'package:localfit/log_in/forgotpassword.dart';
 import 'package:localfit/log_in/register.dart';
-import '../api_manager/apimanager.dart';
-
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 class SignInScreen extends StatefulWidget {
   static const String routename = 'sign in';
-  const SignInScreen({super.key});
 
   @override
   State<SignInScreen> createState() => _SignInScreenState();
 }
-
 class _SignInScreenState extends State<SignInScreen> {
   bool isPasswordVisible = false;
   bool isLoading = false;
-  final TextEditingController emailController = TextEditingController();
+  final TextEditingController userNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  bool isEmailValid = true;
+  bool isUsernameValid = true;
   bool isPasswordValid = true;
 
-  String emailErrorText = '';
+  String usernameErrorText = '';
   String passwordErrorText = '';
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  void showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
 
   bool validateInputs() {
     bool isValid = true;
-    final email = emailController.text.trim();
+    final userName = userNameController.text.trim();
     final password = passwordController.text.trim();
 
-    if (email.isEmpty) {
+    if (userName.isEmpty) {
       setState(() {
-        isEmailValid = false;
-        emailErrorText = 'Email is required';
-      });
-      isValid = false;
-    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
-      setState(() {
-        isEmailValid = false;
-        emailErrorText = 'Enter a valid email';
+        isUsernameValid = false;
+        usernameErrorText = 'Username is required';
       });
       isValid = false;
     } else {
       setState(() {
-        isEmailValid = true;
-        emailErrorText = '';
+        isUsernameValid = true;
+        usernameErrorText = '';
       });
     }
 
@@ -82,62 +57,139 @@ class _SignInScreenState extends State<SignInScreen> {
     return isValid;
   }
 
-  void handleLogin() async {
+  Future<void> handleLogin() async {
     if (!validateInputs()) return;
 
     setState(() {
       isLoading = true;
     });
 
+    final username = userNameController.text.trim();
+    final password = passwordController.text.trim();
+
     try {
-      final response = await ApiManager().getemailandpassword(
-        emailController.text.trim(),
-        passwordController.text.trim(),
+      final response = await http.post(
+        Uri.parse('https://localfit.runasp.net/api/User/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "userName": username,
+          "password": password,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response.statusCode == 200) {
+        final token = data['token'];
+        if (token != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', token);
+
+          Navigator.pushNamedAndRemoveUntil(
+              context, HomeScreen.routename, (route) => false);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login failed: Token not received')),
+          );
+        }
+      } else if (response.statusCode == 401) {
+        final errorMsg = data['message'] ?? 'Unauthorized';
+        if (errorMsg.contains('Email not verified')) {
+          _showEmailNotVerifiedDialog(username);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMsg)),
+          );
+        }
+      } else {
+        final errorMsg = data['message'] ?? 'Login failed';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg)),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
+  void _showEmailNotVerifiedDialog(String email) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Email Not Verified'),
+        content: const Text(
+            'Your email is not verified. Please verify your email before logging in.'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await resendVerificationEmail(email);
+            },
+            child: const Text('Resend Verification Email'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> resendVerificationEmail(String email) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://localfit.runasp.net/api/User/resend-verification-email'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({"email": email}),
       );
 
       setState(() {
         isLoading = false;
       });
 
-      if (response['success'] == true) {
-        showSnackBar('Login successful!');
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/home',
-              (route) => false, // Remove all previous routes
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Verification email sent. Please check your inbox.')),
         );
       } else {
-        final error = response['error']?.toString().toLowerCase() ?? '';
-        final message = response['message'] ?? 'An error occurred';
-
-        setState(() {
-          if (error.contains('email')) {
-            isEmailValid = false;
-            emailErrorText = message;
-          } else {
-            isEmailValid = true;
-            emailErrorText = '';
-          }
-
-          if (error.contains('password')) {
-            isPasswordValid = false;
-            passwordErrorText = message;
-          } else {
-            isPasswordValid = true;
-            passwordErrorText = '';
-          }
-
-          if (!error.contains('email') && !error.contains('password')) {
-            showSnackBar(message, isError: true);
-          }
-        });
+        final errorMsg = jsonDecode(response.body)['message'] ??
+            'Failed to resend verification email';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg)),
+        );
       }
     } catch (e) {
       setState(() {
         isLoading = false;
       });
-      showSnackBar('Something went wrong. Please try again.', isError: true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
     }
+  }
+
+  @override
+  void dispose() {
+    userNameController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -150,57 +202,36 @@ class _SignInScreenState extends State<SignInScreen> {
           child: Column(
             children: [
               const SizedBox(height: 80),
-              const Center(
-                child: Text(
-                  'Sign In',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+              const Text(
+                'Sign In',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 32),
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Email', style: TextStyle(color: Color(0xff000000))),
+                child: Text('Username'),
               ),
               TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
+                controller: userNameController,
                 decoration: InputDecoration(
-                  hintText: 'Enter Your Email',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  errorText: isEmailValid ? null : emailErrorText,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: isEmailValid ? Colors.grey : Colors.red,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: isEmailValid ? Colors.blue : Colors.red,
-                      width: 2,
-                    ),
-                  ),
+                  hintText: 'Enter your username',
+                  errorText: isUsernameValid ? null : usernameErrorText,
                 ),
               ),
               const SizedBox(height: 16),
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Password', style: TextStyle(color: Color(0xff000000))),
+                child: Text('Password'),
               ),
               TextField(
                 controller: passwordController,
                 obscureText: !isPasswordVisible,
                 decoration: InputDecoration(
-                  hintText: 'Enter Your Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  hintText: 'Enter your password',
                   suffixIcon: IconButton(
-                    icon: Icon(
-                      isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                    ),
+                    icon: Icon(isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off),
                     onPressed: () {
                       setState(() {
                         isPasswordVisible = !isPasswordVisible;
@@ -208,94 +239,35 @@ class _SignInScreenState extends State<SignInScreen> {
                     },
                   ),
                   errorText: isPasswordValid ? null : passwordErrorText,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: isPasswordValid ? Colors.grey : Colors.red,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: isPasswordValid ? Colors.blue : Colors.red,
-                      width: 2,
-                    ),
+                ),
+              ),
+              InkWell(
+                onTap: (){
+                  Navigator.pushNamed(context, ForgotPasswordScreen.routename);
+                },
+                child: const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    "Forgot password?",
+                    style: TextStyle(color: Colors.blue),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, ForgotPasswordScreen.routename);
-                  },
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
                 onPressed: handleLogin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff5C5545),
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                child: const Text(
-                  'Sign In',
-                  style: TextStyle(color: Color(0xffffffff)),
-                ),
+                child: const Text('Sign In'),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: const [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Text('OR'),
-                  ),
-                  Expanded(child: Divider()),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
+              TextButton(
                 onPressed: () {
-                  showSnackBar('Google Sign-In not implemented yet.');
+                  Navigator.pushReplacementNamed(
+                      context, RegisterScreen.routename);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  side: const BorderSide(color: Colors.black12),
-                ),
-                icon: const FaIcon(FontAwesomeIcons.google, color: Colors.red),
-                label: const Text(
-                  'Sign With Google',
-                  style: TextStyle(color: Colors.black),
-                ),
+                child: const Text("Don't have an account? Register"),
               ),
-              const SizedBox(height: 16),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) =>  RegisterScreen()),
-                    );
-                  },
-                  child: const Text(
-                    "Don't have an account? Register",
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -303,5 +275,3 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 }
-
-
