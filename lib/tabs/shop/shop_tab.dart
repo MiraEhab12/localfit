@@ -17,7 +17,7 @@ class ShopTab extends StatelessWidget {
   static const String routename = 'shoptab';
 
   Future<void> fetchCartItemsFromAPI(BuildContext context) async {
-    final Uri url = Uri.parse('https://localfit.runasp.net/api/cart/items');
+    final Uri url = Uri.parse('https://localfitt.runasp.net/api/cart/items');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -40,7 +40,7 @@ class ShopTab extends StatelessWidget {
 
   Future<void> updateCartAPI(ProductWithSizeAndQuantity item) async {
     final Uri url = Uri.parse(
-        'https://localfit.runasp.net/api/cart/items/${item.product.producTID}');
+        'https://localfitt.runasp.net/api/cart/items/${item.product.producTID}');
     try {
       final response = await http.put(
         url,
@@ -125,7 +125,8 @@ class ShopTab extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text("MyCart", style: Appfonts.interfont24weight400),centerTitle: true,
+        title: Text("MyCart", style: Appfonts.interfont24weight400),
+        centerTitle: true,
       ),
       body: BlocBuilder<CartCubit, List<ProductWithSizeAndQuantity>>(
         builder: (context, cartItems) {
@@ -134,9 +135,7 @@ class ShopTab extends StatelessWidget {
               padding: const EdgeInsets.only(left: 60),
               child: Column(
                 children: [
-                  SizedBox(
-                    height: 28,
-                  ),
+                  SizedBox(height: 28),
                   Image.asset(Appassets.shopping),
                   SizedBox(height: 37),
                   Text("Cart is empty 🛒", style: Appfonts.interfont24weight400),
@@ -155,12 +154,13 @@ class ShopTab extends StatelessWidget {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => HomeScreen()),
-                            (route) => false,  // ده يعني يمسح كل الصفحات اللي قبلها
+                            (route) => false,
                       );
                     },
-                    child: Text("Continue Shopping",style: TextStyle(
-                      fontSize: 16
-                    ),),
+                    child: Text(
+                      "Continue Shopping",
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
                 ],
               ),
@@ -180,65 +180,103 @@ class ShopTab extends StatelessWidget {
                     return Container(
                       color: AppColors.ligthgray,
                       width: double.infinity,
-                      height: height*0.19,
+                      height: height * 0.19,
                       child: Stack(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 16, top: 21, bottom: 21, right: 48),
+                            padding: const EdgeInsets.only(
+                                left: 16, top: 21, bottom: 21, right: 48),
                             child: Row(
                               children: [
                                 Image.network(
-                                  "https://localfit.runasp.net${item.product.productIMGUrl??''}",
+                                  "https://localfit.runasp.net${item.product.productIMGUrl ?? ''}",
+                                  width: width * 0.2,
+                                  height: height * 0.12,
+                                  fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
                                       Icon(Icons.broken_image_outlined),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 24),
+                                SizedBox(width: 16),
+                                Expanded(
                                   child: Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(item.product.producTNAME ?? ""),
+                                      Text(item.product.producTNAME ?? "",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
                                       Text("${item.product.price}"),
                                       SizedBox(height: 5),
                                       Row(
                                         children: [
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.white,
-                                              foregroundColor: Colors.black,
-                                              side: BorderSide(color: Color(0xffE0E0E0), width: 2),
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                                            ),
-                                            onPressed: () {
-                                              _showSizeBottomSheet(context, index, item.selectedSize);
-                                            },
-                                            child: Row(
-                                              children: [
-                                                Text("Size: ${item.selectedSize}",
-                                                    style: Appfonts.interfont14weight400),
-                                                Icon(Icons.arrow_drop_down_sharp, color: Color(0xffE0E0E0)),
-                                              ],
+                                          Expanded(
+                                            flex: 2,
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white,
+                                                foregroundColor: Colors.black,
+                                                side: BorderSide(
+                                                    color: Color(0xffE0E0E0),
+                                                    width: 2),
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius.zero),
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 10),
+                                              ),
+                                              onPressed: () {
+                                                _showSizeBottomSheet(
+                                                    context, index, item.selectedSize);
+                                              },
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text("Size: ${item.selectedSize}",
+                                                        style: Appfonts
+                                                            .interfont14weight400),
+                                                    Icon(Icons.arrow_drop_down_sharp,
+                                                        color: Color(0xffE0E0E0)),
+                                                  ],
+                                                ),
+                                              ),
                                             ),
                                           ),
                                           SizedBox(width: 10),
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              fixedSize: Size(104,36),
-                                              backgroundColor: Colors.white,
-                                              foregroundColor: Colors.black,
-                                              side: BorderSide(color: Color(0xffE0E0E0), width: 2),
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                                            ),
-                                            onPressed: () {
-                                              _showQuantityBottomSheet(context, index, item.quantity);
-                                            },
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Row(
-                                                children: [
-                                                  Text("Qty: ${item.quantity}",overflow: TextOverflow.ellipsis, style: Appfonts.interfont14weight400),
-                                                  Icon(Icons.arrow_drop_down_sharp, color: Color(0xffE0E0E0)),
-                                                ],
+                                          Expanded(
+                                            flex: 1,
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white,
+                                                foregroundColor: Colors.black,
+                                                side: BorderSide(
+                                                    color: Color(0xffE0E0E0),
+                                                    width: 2),
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius.zero),
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 10),
+                                              ),
+                                              onPressed: () {
+                                                _showQuantityBottomSheet(
+                                                    context, index, item.quantity);
+                                              },
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text("Qty: ${item.quantity}",
+                                                        overflow:
+                                                        TextOverflow.ellipsis,
+                                                        style: Appfonts
+                                                            .interfont14weight400),
+                                                    Icon(Icons.arrow_drop_down_sharp,
+                                                        color: Color(0xffE0E0E0)),
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -295,7 +333,6 @@ class ShopTab extends StatelessWidget {
                             builder: (_) => CheckoutScreen(totalAmount: totalPrice),
                           ),
                         );
-
                       },
                       child: Text("Check out"),
                     ),

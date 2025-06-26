@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/homescreen.dart';
 import 'package:localfit/log_in/forgotpassword.dart';
 import 'package:localfit/log_in/register.dart';
@@ -69,7 +70,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://localfit.runasp.net/api/User/login'),
+        Uri.parse('https://localfitt.runasp.net/api/User/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "userName": username,
@@ -155,7 +156,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://localfit.runasp.net/api/User/resend-verification-email'),
+        Uri.parse('https://localfitt.runasp.net/api/User/resend-verification-email'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"email": email}),
       );
@@ -257,16 +258,22 @@ class _SignInScreenState extends State<SignInScreen> {
               isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.maindarkcolor,
+                  foregroundColor: Colors.white
+                ),
                 onPressed: handleLogin,
                 child: const Text('Sign In'),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 350),
               TextButton(
                 onPressed: () {
                   Navigator.pushReplacementNamed(
                       context, RegisterScreen.routename);
                 },
-                child: const Text("Don't have an account? Register"),
+                child: const Text("Don't have an account? Register",style: TextStyle(
+                  color: Color(0xff5C5646)
+                ),),
               ),
             ],
           ),

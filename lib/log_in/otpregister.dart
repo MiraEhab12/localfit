@@ -53,7 +53,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://localfit.runasp.net/api/User/verify-email'),
+        Uri.parse('https://localfitt.runasp.net/api/User/verify-email'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"email": widget.email, "otp": otp}),
       );
@@ -85,7 +85,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://localfit.runasp.net/api/User/resend-verification-email'),
+        Uri.parse('https://localfitt.runasp.net/api/User/resend-verification-email'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"email": widget.email}),
       );

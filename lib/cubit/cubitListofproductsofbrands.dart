@@ -9,11 +9,11 @@ import '../api_manager/responses/productsofbrands.dart';
 class CubitListOfProductOfBrand extends Cubit<Homestate>{
   List<Responseproductsofbrands> listofproducts=[];
   Responseproductsofbrands? responseproductsofbrands;
-  CubitListOfProductOfBrand():super(GetPoductsLoadingState());
+  CubitListOfProductOfBrand():super(GetProductsLoadingState());
 
  void getproductsofbrand() async{
    try{
-     emit(GetPoductsLoadingState());
+     emit(GetProductsLoadingState());
 
      Uri url= Uri.https('localfit.runasp.net','api/product/getproducts');
      http.Response response=await http.get(url,headers: {
@@ -27,17 +27,17 @@ class CubitListOfProductOfBrand extends Cubit<Homestate>{
      if(response.statusCode==200){
        var json=jsonDecode(response.body) as List;
      listofproducts=json.map((item)=> Responseproductsofbrands.fromJson(item)).toList();
-       emit(GetProductsSucessfulState());
+       emit(GetProductsSuccessfulState());
 
      }else{
-       emit(GetProductsErorrState(
+       emit(GetProductsErrorState(
            'Error: Status code is ${response.statusCode}'
        ));
      }
    }
    catch(e){
      print("ERROR IN API: $e");
-   emit(GetProductsErorrState('Exception: $e'));
+   emit(GetProductsErrorState('Exception: $e'));
    }
 
   }

@@ -6,7 +6,7 @@ class ApiManager {
   // ✅ تسجيل الدخول باستخدام userName فقط
   Future<Map<String, dynamic>> loginWithUsernameAndPassword(String username, String password) async {
     final response = await http.post(
-      Uri.parse('https://localfit.runasp.net/api/User/login'),
+      Uri.parse('https://localfitt.runasp.net/api/User/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'userName': username,

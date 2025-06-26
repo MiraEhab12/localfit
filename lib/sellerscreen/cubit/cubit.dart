@@ -27,7 +27,7 @@ class AddProductCubit extends Cubit<AddProductState> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://localfit.runasp.net/api/product/createproduct'),
+        Uri.parse('https://localfitt.runasp.net/api/product/createproduct'),
       );
 
       request.fields['PRODUCT_NAME'] = name;

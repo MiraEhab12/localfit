@@ -65,7 +65,7 @@ class _ProductdetailsState extends State<Productdetails> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Image.network(
-            "https://localfit.runasp.net${receiveDetails.productIMGUrl??''}",
+            "https://localfit.runasp.net${receiveDetails.productIMGUrl ?? ''}",
             fit: BoxFit.fill,
             width: width,
             height: height * 0.6,
@@ -91,27 +91,37 @@ class _ProductdetailsState extends State<Productdetails> {
             padding: EdgeInsets.symmetric(vertical: 27, horizontal: 16),
             child: Row(
               children: [
-                ElevatedButton(
-                  onPressed: _showSizeBottomSheet,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Color(0xffe0e0e0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        selectedSize ?? "Select Size",
-                        style: GoogleFonts.inter(
-                          textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+                Expanded(
+                  flex: 1,
+                  child: ElevatedButton(
+                    onPressed: _showSizeBottomSheet,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Color(0xffe0e0e0),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            selectedSize ?? "Select Size",
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+                            ),
+                          ),
                         ),
-                      ),
-                      Icon(Icons.arrow_drop_down, size: 30),
-                    ],
+                        Icon(Icons.arrow_drop_down, size: 24),
+                      ],
+                    ),
                   ),
                 ),
-                SizedBox(width: 24),
-                ElevatedButton(
+                SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
                     onPressed: () {
                       if (selectedSize?.isEmpty ?? true) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -151,15 +161,20 @@ class _ProductdetailsState extends State<Productdetails> {
                         ),
                       );
                     },
-
-
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 7, horizontal: 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        "Add to cart",
+                        style: GoogleFonts.inter(fontSize: 16),
+                      ),
+                    ),
                   ),
-                  child: Text("Add to cart"),
                 ),
               ],
             ),

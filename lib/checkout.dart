@@ -1,8 +1,14 @@
+// ✅ Full Checkout & Order Logic in Flutter - With Cart Items & Order Details
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:localfit/thankyou.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:localfit/thankyou.dart';
+// <-- assume you manage cart items via Cubit
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'cubit/cartcubit.dart';
+import 'orderdetailes.dart';
 
 class AddressStorage {
   static Future<void> saveAddress(String country, String address) async {
@@ -13,9 +19,10 @@ class AddressStorage {
 
   static Future<Map<String, String?>> getAddress() async {
     final prefs = await SharedPreferences.getInstance();
-    String? country = prefs.getString('user_country');
-    String? address = prefs.getString('user_address');
-    return {'country': country, 'address': address};
+    return {
+      'country': prefs.getString('user_country'),
+      'address': prefs.getString('user_address'),
+    };
   }
 }
 
@@ -23,7 +30,7 @@ class CheckoutScreen extends StatefulWidget {
   static const String routename = 'check_out';
   final double totalAmount;
 
-  CheckoutScreen({required this.totalAmount});
+  const CheckoutScreen({required this.totalAmount});
 
   @override
   _CheckoutScreenState createState() => _CheckoutScreenState();
@@ -34,29 +41,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String? selectedCountry;
   final addressController = TextEditingController();
 
-  List<String> countries = [
-    'Beni Suef',
-    '6th of October',
-    'Abbassia',
-    'Al Maadi',
-    'Al Rehab',
-    'Al Shorouk',
-    'Cairo',
-    'Faisal',
-    'Garden City',
-    'Giza',
-    'Minya',
-    'Nasr City',
-    'New Cairo',
-    'Obour City',
-    'Sayeda Zeinab',
-    'Sharkya',
-    'Sheikh Zayed',
-    'Shubra',
-    'Tahrir Square',
-    'Tanta',
-    'Zamalek',
-    'Fayoum'
+  final List<String> countries = [
+    'Cairo', 'Giza', 'Minya', 'Beni Suef',
+    'Nasr City','Maadi','Faisal','6th of October','Sheikh Zayed','Dokki',
+    'Mohandessin','Al Rehab','Al Shorouk','Fayoum'
   ];
 
   @override
@@ -67,70 +55,92 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void loadSavedAddress() async {
     final saved = await AddressStorage.getAddress();
-    if (saved['country'] != null) {
-      setState(() {
-        selectedCountry = saved['country'];
-        addressController.text = saved['address'] ?? '';
-      });
-    }
+    setState(() {
+      selectedCountry = saved['country'];
+      addressController.text = saved['address'] ?? '';
+    });
   }
 
   void showMessage(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   Future<void> confirmOrder() async {
-    if (selectedCountry == null || selectedCountry!.isEmpty) {
-      showMessage('Please select a city');
-      return;
-    }
-    if (addressController.text.trim().isEmpty) {
-      showMessage('Please enter your address');
-      return;
-    }
-    if (selectedPaymentMethod == null) {
-      showMessage('Please select a payment method');
+    if (selectedCountry == null || selectedCountry!.isEmpty ||
+        addressController.text.trim().isEmpty ||
+        selectedPaymentMethod == null) {
+      showMessage('Please complete all required fields.');
       return;
     }
 
-    await AddressStorage.saveAddress(
-      selectedCountry!,
-      addressController.text.trim(),
-    );
+    await AddressStorage.saveAddress(selectedCountry!, addressController.text.trim());
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
-
       if (token.isEmpty) {
-        showMessage('User not authenticated. Please log in.');
+        showMessage('Please log in to proceed.');
         return;
       }
 
-      final response = await http.post(
-        Uri.parse('https://localfit.runasp.net/api/payment/confirm-payment'),
+      // احضر المنتجات من الكارت (Cubit)
+      final cartItems = context.read<CartCubit>().state;
+      final itemsJson = cartItems.map((item) => {
+        "productId": item.product.producTID,
+        "quantity": item.quantity
+      }).toList();
+
+      // 1. Create order
+      final orderResponse = await http.post(
+        Uri.parse('https://localfitt.runasp.net/api/Order'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token'
         },
         body: jsonEncode({
-          "amount": widget.totalAmount,
-          "currency": "egp",
-          "payment_method": selectedPaymentMethod,
-          "address": addressController.text.trim(),
           "country": selectedCountry,
+          "address": addressController.text.trim(),
+          "items": itemsJson
         }),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Navigator.pushReplacementNamed(context, ThankYouScreen.routename);
+      if (orderResponse.statusCode != 200 && orderResponse.statusCode != 201) {
+        showMessage('Order creation failed ❌');
+        return;
+      }
+
+      final orderData = jsonDecode(orderResponse.body);
+      final orderId = orderData['orderId'];
+
+      if (orderId == null) {
+        showMessage('Order ID not found');
+        return;
+      }
+
+      // 2. Create payment intent
+      final paymentResponse = await http.post(
+        Uri.parse('https://localfitt.runasp.net/api/payment/create-payment-intent'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode({
+          "orderId": orderId,
+          "amount": widget.totalAmount,
+          "currency": "egp",
+          "payment_method": selectedPaymentMethod
+        }),
+      );
+
+      if (paymentResponse.statusCode == 200 || paymentResponse.statusCode == 201) {
+        // 💡 ممكن تعرض صفحة تفاصيل الأوردر لو حبيت
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (_) => OrderDetailsScreen(orderId: orderId)));
       } else {
-        showMessage('Payment confirmation failed ❌');
+        showMessage('Payment failed ❌');
       }
     } catch (e) {
-      showMessage('An error occurred during payment confirmation ❌');
+      showMessage('Error: $e');
     }
   }
 
@@ -140,112 +150,47 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(title: Text("Checkout")),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Select City", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-              value: selectedCountry,
-              items: countries.map((country) {
-                return DropdownMenuItem(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              DropdownButtonFormField<String>(
+                value: selectedCountry,
+                items: countries.map((country) => DropdownMenuItem(
                   value: country,
                   child: Text(country),
-                );
-              }).toList(),
-              onChanged: (val) {
-                setState(() {
-                  selectedCountry = val;
-                });
-              },
-            ),
-            SizedBox(height: 20),
-            Text("Enter Address", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 10),
-            TextFormField(
-              controller: addressController,
-              maxLines: 3,
-              textInputAction: TextInputAction.newline,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Your home address",
+                )).toList(),
+                onChanged: (val) => setState(() => selectedCountry = val),
+                decoration: InputDecoration(labelText: 'City', border: OutlineInputBorder()),
               ),
-            ),
-            SizedBox(height: 30),
-            Divider(thickness: 1),
-            SizedBox(height: 20),
-            Text("Payment Method", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 30),
-            RadioListTile<String>(
-              title: Row(
-                children: [
-                  Text("Cash On Delivery"),
-                  Spacer(),
-                  Icon(Icons.delivery_dining),
-                ],
-              ),
-              value: "Cash On Delivery",
-              groupValue: selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  selectedPaymentMethod = value;
-                });
-              },
-            ),
-            RadioListTile<String>(
-              title: Row(
-                children: [
-                  Text("Credit/Debit Card"),
-                  Spacer(),
-                  Icon(Icons.credit_card),
-                ],
-              ),
-              value: "Credit/Debit Card",
-              groupValue: selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  selectedPaymentMethod = value;
-                });
-              },
-            ),
-            RadioListTile<String>(
-              title: Row(
-                children: [
-                  Text("Apple Pay"),
-                  Spacer(),
-                  Icon(Icons.apple),
-                ],
-              ),
-              value: "Apple Pay",
-              groupValue: selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  selectedPaymentMethod = value;
-                });
-              },
-            ),
-            Spacer(),
-            Text("Total Amount: ${widget.totalAmount.toStringAsFixed(2)} EGP",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: confirmOrder,
-                child: Text("Confirm Payment"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.black,
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: addressController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Address',
+                  border: OutlineInputBorder(),
                 ),
               ),
-            ),
-            SizedBox(height: 20),
-          ],
+              SizedBox(height: 16),
+              RadioListTile<String>(
+                value: 'Cash On Delivery',
+                groupValue: selectedPaymentMethod,
+                onChanged: (val) => setState(() => selectedPaymentMethod = val),
+                title: Text("Cash On Delivery"),
+              ),
+              RadioListTile<String>(
+                value: 'Credit/Debit Card',
+                groupValue: selectedPaymentMethod,
+                onChanged: (val) => setState(() => selectedPaymentMethod = val),
+                title: Text("Credit/Debit Card"),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: confirmOrder,
+                child: Text("Confirm Payment"),
+              ),
+            ],
+          ),
         ),
       ),
     );

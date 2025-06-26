@@ -1,4 +1,3 @@
-// كلاس المنتج الواحد (زي اللي عندك)
 class Responseproductsofbrands {
   int? producTID;
   String? producTNAME;
@@ -6,6 +5,7 @@ class Responseproductsofbrands {
   double? price;
   int? brandID;
   String? brandName;
+  String? brandLogoUrl; // ✅ تم إضافتها
   int? caTID;
   String? caTNAME;
   int? stockLevel;
@@ -18,6 +18,7 @@ class Responseproductsofbrands {
     this.price,
     this.brandID,
     this.brandName,
+    this.brandLogoUrl, // ✅ في الكونستركتور
     this.caTID,
     this.caTNAME,
     this.stockLevel,
@@ -28,10 +29,11 @@ class Responseproductsofbrands {
     producTID = json['producT_ID'];
     producTNAME = json['producT_NAME'];
     description = json['description'];
-    // لو السعر ممكن ييجي int أو double
-    price = json['price'] is int ? (json['price'] as int).toDouble() : json['price'];
+    price =
+    json['price'] is int ? (json['price'] as int).toDouble() : json['price'];
     brandID = json['brand_ID'];
     brandName = json['brand_Name'];
+    brandLogoUrl = json['brand_LogoUrl']; // ✅ هنا كمان
     caTID = json['caT_ID'];
     caTNAME = json['caT_NAME'];
     stockLevel = json['stockLevel'];
@@ -39,19 +41,17 @@ class Responseproductsofbrands {
   }
 
   Map<String, dynamic> toJson() {
-    final data = <String, dynamic>{};
-    data['producT_ID'] = producTID;
-    data['producT_NAME'] = producTNAME;
-    data['description'] = description;
-    data['price'] = price;
-    data['brand_ID'] = brandID;
-    data['brand_Name'] = brandName;
-    data['caT_ID'] = caTID;
-    data['caT_NAME'] = caTNAME;
-    data['stockLevel'] = stockLevel;
-    data['productIMGUrl'] = productIMGUrl;
-    return data;
+    return {
+      'producT_ID': producTID,
+      'producT_NAME': producTNAME,
+      'description': description,
+      'price': price,
+      'brand_ID': brandID,
+      'brand_Name': brandName,
+      'caT_ID': caTID,
+      'caT_NAME': caTNAME,
+      'stockLevel': stockLevel,
+      'productIMGUrl': productIMGUrl,
+    };
   }
 }
-
-

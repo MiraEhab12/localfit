@@ -64,14 +64,14 @@ class _Woman_screenState extends State<Woman_screen> {
         ),
         body: BlocBuilder<CubitListOfProductOfBrand, Homestate>(
           builder: (context, state) {
-            if (state is GetPoductsLoadingState) {
+            if (state is GetProductsLoadingState) {
               return Center(child: CircularProgressIndicator());
-            } else if (state is GetProductsErorrState) {
+            } else if (state is GetProductsErrorState) {
               return Center(
-                  child: Text("حدث خطأ أثناء تحميل المنتجات، حاول مرة أخرى"));
-            } else if (state is GetProductsSucessfulState) {
+                  child: Text("something error please try again"));
+            } else if (state is GetProductsSuccessfulState) {
               if (cubit.listofproducts.isEmpty) {
-                return Center(child: Text("لا توجد منتجات حالياً"));
+                return Center(child: Text("There are no products currentlyً"));
               }
 
               return Padding(
@@ -92,7 +92,7 @@ class _Woman_screenState extends State<Woman_screen> {
                 ),
               );
             } else {
-              return Center(child: Text("حدث خطأ غير متوقع"));
+              return Center(child: Text("An unexpected error occurred"));
             }
           },
         ),
