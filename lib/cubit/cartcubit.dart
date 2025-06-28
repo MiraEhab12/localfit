@@ -1,18 +1,21 @@
+// cart_cubit.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:localfit/cubit/states.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../clothesofwomen/productwithsize.dart'; // تأكد من صحة المسار
+import '../clothesofwomen/productwithsize.dart';
 
-class CartCubit extends Cubit<List<ProductWithSizeAndQuantity>> {
-  CartCubit() : super([]);
+class CartCubit extends Cubit<CartState> {
+  CartCubit() : super(CartInitial());
 
-  // مفاتيح التخزين للـ SharedPreferences
+  // مفاتيح التخزين
   static const String _cartIdKey = 'cartId';
   static const String _custIdKey = 'custid';
 
-  // ======== دوال لحفظ واسترجاع cartId و custid =========
+  List<ProductWithSizeAndQuantity> _cartItems = [];
 
+  // حفظ واسترجاع IDs
   Future<void> saveCartAndCustomerIds(int cartId, int custId) async {
-    if (cartId == 0 || custId == 0) return; // لا تحفظ أصفار فارغة
+    if (cartId == 0 || custId == 0) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_cartIdKey, cartId);
     await prefs.setInt(_custIdKey, custId);
@@ -29,52 +32,58 @@ class CartCubit extends Cubit<List<ProductWithSizeAndQuantity>> {
     return prefs.getInt(_custIdKey) ?? 0;
   }
 
-  // =======================================================
+  // تحميل المنتجات
+  void loadCart(List<ProductWithSizeAndQuantity> items) {
+    _cartItems = items;
+    _emitSuccess();
+  }
 
-  // إضافة منتج للسلة مع تعديل الكمية إذا المنتج موجود بالفعل بنفس المقاس
   void addToCart(ProductWithSizeAndQuantity item) {
-    final updatedCart = List<ProductWithSizeAndQuantity>.from(state);
-    final existingIndex = updatedCart.indexWhere((e) =>
+    final index = _cartItems.indexWhere((e) =>
     e.product.producTID == item.product.producTID &&
-        e.selectedSize == item.selectedSize);
+        e.selectedSize == item.selectedSize
+    );
 
-    if (existingIndex != -1) {
-      updatedCart[existingIndex].quantity += item.quantity;
+    if (index != -1) {
+      _cartItems[index].quantity += item.quantity;
     } else {
-      updatedCart.add(item);
+      _cartItems.add(item);
     }
-
-    emit(updatedCart);
+    _emitSuccess();
   }
 
-  // إزالة منتج بواسطة الفهرس
   void removeFromCartByIndex(int index) {
-    final updated = List<ProductWithSizeAndQuantity>.from(state);
-    updated.removeAt(index);
-    emit(updated);
+    _cartItems.removeAt(index);
+    _emitSuccess();
   }
 
-  // تعديل الكمية
   void updateQuantity(int index, int newQuantity) {
-    final updated = List<ProductWithSizeAndQuantity>.from(state);
-    updated[index].quantity = newQuantity;
-    emit(updated);
+    _cartItems[index].quantity = newQuantity;
+    _emitSuccess();
   }
 
-  // تعديل المقاس
   void updateSize(int index, String newSize) {
-    final updated = List<ProductWithSizeAndQuantity>.from(state);
-    updated[index].selectedSize = newSize;
-    emit(updated);
+    _cartItems[index].selectedSize = newSize;
+    _emitSuccess();
   }
 
-  // استبدال كل عناصر السلة بقائمة جديدة
   void replaceCartItems(List<ProductWithSizeAndQuantity> items) {
-    emit(List<ProductWithSizeAndQuantity>.from(items));
+    _cartItems = List<ProductWithSizeAndQuantity>.from(items);
+    _emitSuccess();
   }
 
-  // تفريغ السلة
   void clearCart() {
-    emit([]);
+    _cartItems.clear();
+    _emitSuccess();
   }
+
+  void _emitSuccess() {
+    emit(CartSuccess(cartItems: List.from(_cartItems)));
+  }
+
+  // احصل على السعر الكلي (يمكن استدعاؤها من خارج الكيوبت)
+  double get totalPrice => _cartItems.fold(
+    0.0,
+        (sum, item) => sum + ((item.product.price ?? 0.0) * item.quantity),
+  );
 }

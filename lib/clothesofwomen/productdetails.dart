@@ -6,6 +6,8 @@ import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/clothesofwomen/productwithsize.dart';
 import 'package:localfit/cubit/cartcubit.dart';
 
+import '../cubit/states.dart';
+
 class Productdetails extends StatefulWidget {
   static const String routename = 'product details';
 
@@ -130,11 +132,16 @@ class _ProductdetailsState extends State<Productdetails> {
                         return;
                       }
 
-                      final cartItems = context.read<CartCubit>().state;
+                      final cartState = context.read<CartCubit>().state;
+                      bool alreadyInCart = false;
 
-                      final alreadyInCart = cartItems.any(
-                            (item) => item.product.producTID == receiveDetails.producTID,
-                      );
+                      if (cartState is CartSuccess) {
+                        alreadyInCart = cartState.cartItems.any(
+                              (item) =>
+                          item.product.producTID == receiveDetails.producTID &&
+                              item.selectedSize == selectedSize,
+                        );
+                      }
 
                       if (alreadyInCart) {
                         ScaffoldMessenger.of(context).showSnackBar(

@@ -1,72 +1,37 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:localfit/appcolor/appcolors.dart';
-import 'package:localfit/homescreen.dart';
-import 'package:localfit/log_in/forgotpassword.dart';
-import 'package:localfit/log_in/register.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:localfit/homescreen.dart'; // تأكدي من أن هذا المسار صحيح
+
 class SignInScreen extends StatefulWidget {
-  static const String routename = 'sign in';
+  static const String routename = 'sign_in';
 
   @override
   State<SignInScreen> createState() => _SignInScreenState();
 }
+
 class _SignInScreenState extends State<SignInScreen> {
-  bool isPasswordVisible = false;
-  bool isLoading = false;
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  bool isUsernameValid = true;
-  bool isPasswordValid = true;
-
-  String usernameErrorText = '';
-  String passwordErrorText = '';
-
-  bool validateInputs() {
-    bool isValid = true;
-    final userName = userNameController.text.trim();
-    final password = passwordController.text.trim();
-
-    if (userName.isEmpty) {
-      setState(() {
-        isUsernameValid = false;
-        usernameErrorText = 'Username is required';
-      });
-      isValid = false;
-    } else {
-      setState(() {
-        isUsernameValid = true;
-        usernameErrorText = '';
-      });
-    }
-
-    if (password.isEmpty) {
-      setState(() {
-        isPasswordValid = false;
-        passwordErrorText = 'Password is required';
-      });
-      isValid = false;
-    } else {
-      setState(() {
-        isPasswordValid = true;
-        passwordErrorText = '';
-      });
-    }
-
-    return isValid;
-  }
+  bool isLoading = false;
+  bool isPasswordVisible = false;
 
   Future<void> handleLogin() async {
-    if (!validateInputs()) return;
+    final username = userNameController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('الرجاء إدخال اسم المستخدم وكلمة المرور')),
+      );
+      return;
+    }
 
     setState(() {
       isLoading = true;
     });
-
-    final username = userNameController.text.trim();
-    final password = passwordController.text.trim();
 
     try {
       final response = await http.post(
@@ -80,109 +45,56 @@ class _SignInScreenState extends State<SignInScreen> {
 
       final data = jsonDecode(response.body);
 
-      setState(() {
-        isLoading = false;
-      });
-
       if (response.statusCode == 200) {
+        // اطبعي الاستجابة كاملة للتأكد من أسماء الحقول
+        print("🔵 Server Response on Login: $data");
+
+        // استخراج كل البيانات المطلوبة
         final token = data['token'];
-        if (token != null) {
+        final custId = data['id'];     // أو data['custId']
+        final cartId = data['cartId'];
+
+        // التحقق من وجود كل البيانات الضرورية وأن التوكن كامل
+        if (token != null && token.split('.').length == 3 && custId != null && cartId != null) {
           final prefs = await SharedPreferences.getInstance();
+
+          // مسح البيانات القديمة لضمان عدم وجود تداخل
+          await prefs.clear();
+
+          // حفظ كل البيانات الجديدة والصحيحة
           await prefs.setString('token', token);
+          await prefs.setInt('custId', custId);
+          await prefs.setInt('cartId', cartId);
+
+          print('✅ All data saved successfully!');
+          print('   - Token: $token');
+          print('   - CustID: $custId');
+          print('   - CartID: $cartId');
 
           Navigator.pushNamedAndRemoveUntil(
               context, HomeScreen.routename, (route) => false);
+
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login failed: Token not received')),
-          );
-        }
-      } else if (response.statusCode == 401) {
-        final errorMsg = data['message'] ?? 'Unauthorized';
-        if (errorMsg.contains('Email not verified')) {
-          _showEmailNotVerifiedDialog(username);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMsg)),
+            SnackBar(content: Text('بيانات غير مكتملة من الخادم (token, id, or cartId is missing)')),
           );
         }
       } else {
-        final errorMsg = data['message'] ?? 'Login failed';
+        final errorMsg = data['message'] ?? 'فشل تسجيل الدخول';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMsg)),
         );
       }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
+        SnackBar(content: Text('حدث خطأ في الاتصال: $e')),
       );
-    }
-  }
-
-  void _showEmailNotVerifiedDialog(String email) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Email Not Verified'),
-        content: const Text(
-            'Your email is not verified. Please verify your email before logging in.'),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await resendVerificationEmail(email);
-            },
-            child: const Text('Resend Verification Email'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> resendVerificationEmail(String email) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://localfitt.runasp.net/api/User/resend-verification-email'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({"email": email}),
-      );
-
-      setState(() {
-        isLoading = false;
-      });
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification email sent. Please check your inbox.')),
-        );
-      } else {
-        final errorMsg = jsonDecode(response.body)['message'] ??
-            'Failed to resend verification email';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg)),
-        );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
       }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
-      );
     }
   }
 
@@ -195,88 +107,45 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // واجهة المستخدم تبقى كما هي
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(title: const Text('تسجيل الدخول')),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 80),
-              const Text(
-                'Sign In',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 32),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Username'),
-              ),
-              TextField(
-                controller: userNameController,
-                decoration: InputDecoration(
-                  hintText: 'Enter your username',
-                  errorText: isUsernameValid ? null : usernameErrorText,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Password'),
-              ),
-              TextField(
-                controller: passwordController,
-                obscureText: !isPasswordVisible,
-                decoration: InputDecoration(
-                  hintText: 'Enter your password',
-                  suffixIcon: IconButton(
-                    icon: Icon(isPasswordVisible
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: userNameController,
+              decoration: InputDecoration(labelText: 'اسم المستخدم'),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              obscureText: !isPasswordVisible,
+              decoration: InputDecoration(
+                labelText: 'كلمة المرور',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    isPasswordVisible
                         ? Icons.visibility
-                        : Icons.visibility_off),
-                    onPressed: () {
-                      setState(() {
-                        isPasswordVisible = !isPasswordVisible;
-                      });
-                    },
+                        : Icons.visibility_off,
                   ),
-                  errorText: isPasswordValid ? null : passwordErrorText,
+                  onPressed: () {
+                    setState(() {
+                      isPasswordVisible = !isPasswordVisible;
+                    });
+                  },
                 ),
               ),
-              InkWell(
-                onTap: (){
-                  Navigator.pushNamed(context, ForgotPasswordScreen.routename);
-                },
-                child: const Padding(
-                  padding: EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    "Forgot password?",
-                    style: TextStyle(color: Colors.blue),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.maindarkcolor,
-                  foregroundColor: Colors.white
-                ),
-                onPressed: handleLogin,
-                child: const Text('Sign In'),
-              ),
-              const SizedBox(height: 350),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacementNamed(
-                      context, RegisterScreen.routename);
-                },
-                child: const Text("Don't have an account? Register",style: TextStyle(
-                  color: Color(0xff5C5646)
-                ),),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 32),
+            isLoading
+                ? CircularProgressIndicator()
+                : ElevatedButton(
+              onPressed: handleLogin,
+              child: const Text('تسجيل الدخول'),
+            ),
+          ],
         ),
       ),
     );

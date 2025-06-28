@@ -21,7 +21,7 @@ class _ShopNowState extends State<ShopNow> {
   int selectedindex=0;
   List<Widget> tabs=[
     FavTab(),
-    ShopTab(),
+    CartScreen(),
     ProfTab(),
   ];
   @override

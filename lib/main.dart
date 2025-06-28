@@ -68,7 +68,7 @@ class MyApp extends StatelessWidget {
         ForgotPasswordScreen.routename:(context)=>ForgotPasswordScreen(),
         Woman_screen.routename:(context)=>Woman_screen(),
         Productdetails.routename:(context)=>Productdetails(),
-        ShopTab.routename:(context)=>ShopTab(),
+        CartScreen.routeName:(context)=>CartScreen(),
         Help.routename:(context)=>Help(),
         Personaldetailedscreen.routename:(context)=>Personaldetailedscreen(),
         Homeseller.routename:(context)=>Homeseller(),
