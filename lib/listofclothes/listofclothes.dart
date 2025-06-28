@@ -144,6 +144,7 @@ class Listofclothes extends StatelessWidget {
                     ],
                   ),
                 ],
+
               ),
             ),
           ),

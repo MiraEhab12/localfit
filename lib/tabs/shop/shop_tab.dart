@@ -3,12 +3,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:localfit/checkout.dart';
-import 'package:localfit/cubit/cartcubit.dart';
+// =================== بداية التصحيح هنا ===================
+// قمنا بتصحيح اسم الملف ليطابق الاسم الفعلي
+// =================== نهاية التصحيح هنا ===================
 import 'package:localfit/appassets/appassets.dart';
 import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/appfonts/appfonts.dart';
 import 'package:localfit/homescreen.dart';
 import '../../clothesofwomen/productwithsize.dart';
+import '../../cubit/cartcubit.dart';
 import '../../cubit/states.dart';
 
 class CartScreen extends StatefulWidget {
@@ -41,49 +44,18 @@ class _CartScreenState extends State<CartScreen> {
           if (state is CartLoading) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          if (state is CartInitial || (state is CartSuccess && state.cartItems.isEmpty)) {
+            return buildEmptyCartWidget();
+          }
+
           if (state is CartError) {
             return Center(child: Text(state.message));
           }
+
           if (state is CartSuccess) {
             final cartItems = state.cartItems;
             final cubit = context.read<CartCubit>();
-
-            if (cartItems.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.only(left: 60),
-                child: Column(
-                  children: [
-                    SizedBox(height: 28),
-                    Image.asset(Appassets.shopping),
-                    SizedBox(height: 37),
-                    Text("Cart is empty 🛒", style: Appfonts.interfont24weight400),
-                    SizedBox(height: 25),
-                    Text("Looks like you haven’t made\nYour choice yet",
-                        style: Appfonts.interfont15weight400),
-                    SizedBox(height: 70),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.maindarkcolor,
-                          foregroundColor: Colors.white,
-                          side: BorderSide(color: Color(0xffE0E0E0), width: 2),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)))),
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomeScreen()),
-                              (route) => false,
-                        );
-                      },
-                      child: Text(
-                        "Continue Shopping",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
 
             double totalPrice = cartItems.fold(
                 0, (sum, item) => sum + (item.product.price ?? 0) * item.quantity);
@@ -126,7 +98,7 @@ class _CartScreenState extends State<CartScreen> {
                                           Text(item.product.producTNAME ?? "",
                                               style: TextStyle(
                                                   fontWeight: FontWeight.bold)),
-                                          Text("${item.product.price}"),
+                                          Text("EGP ${item.product.price}"),
                                           SizedBox(height: 5),
                                           Row(
                                             children: [
@@ -154,9 +126,8 @@ class _CartScreenState extends State<CartScreen> {
                                                             return ListTile(
                                                               title: Text(sizes[i]),
                                                               onTap: () {
-                                                                setState(() {
-                                                                  cartItems[index].selectedSize = sizes[i];
-                                                                });
+                                                                // هنا نستخدم cubit لتحديث الحالة
+                                                                context.read<CartCubit>().updateSize(index, sizes[i]);
                                                                 Navigator.pop(ctx);
                                                               },
                                                             );
@@ -194,9 +165,8 @@ class _CartScreenState extends State<CartScreen> {
                                                             return ListTile(
                                                               title: Text(quantities[i].toString()),
                                                               onTap: () {
-                                                                setState(() {
-                                                                  cartItems[index].quantity = quantities[i];
-                                                                });
+                                                                // هنا نستخدم cubit لتحديث الحالة
+                                                                context.read<CartCubit>().updateQuantity(index, quantities[i]);
                                                                 Navigator.pop(ctx);
                                                               },
                                                             );
@@ -243,14 +213,16 @@ class _CartScreenState extends State<CartScreen> {
                   height: height * 0.15,
                   width: double.infinity,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text("Total EGP ${totalPrice.toStringAsFixed(2)}",
                           style: Appfonts.interfont24weight400),
-                      SizedBox(height: 21),
+                      SizedBox(height: 15),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
                           foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(horizontal: 100, vertical: 15),
                           side: BorderSide(color: Color(0xffE0E0E0), width: 2),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                         ),
@@ -273,8 +245,54 @@ class _CartScreenState extends State<CartScreen> {
               ],
             );
           }
-          return const Center(child: Text('Something went wrong!'));
+          // حالة احتياطية أخيرة
+          return buildEmptyCartWidget();
         },
+      ),
+    );
+  }
+
+  // دالة منفصلة لبناء واجهة السلة الفارغة لجعل الكود أنظف
+  Widget buildEmptyCartWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(Appassets.shopping),
+            SizedBox(height: 37),
+            Text("Cart is empty 🛒", style: Appfonts.interfont24weight400),
+            SizedBox(height: 25),
+            Text(
+              "Looks like you haven’t made\nyour choice yet",
+              style: Appfonts.interfont15weight400,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 70),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.maindarkcolor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  side: BorderSide(color: Color(0xffE0E0E0), width: 2),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8)))),
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (route) => false,
+                );
+              },
+              child: Text(
+                "Continue Shopping",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

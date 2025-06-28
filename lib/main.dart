@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
         Personaldetailedscreen.routename:(context)=>Personaldetailedscreen(),
         Homeseller.routename:(context)=>Homeseller(),
         AddTab.routename: (context) => AddTab(),
-        SearchScreen.routename: (context) => SearchScreen(),
+        SearchScreen.routename: (context) => SearchScreen(allProducts: []),
         ThankYouScreen.routename:(context)=>ThankYouScreen(),
 
       },

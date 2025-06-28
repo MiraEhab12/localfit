@@ -9,7 +9,9 @@ class GetProductsInitialState extends Homestate {}
 
 class GetProductsLoadingState extends Homestate {}
 
-class GetProductsSuccessfulState extends Homestate {}
+class GetProductsSuccessfulState extends Homestate {
+
+}
 
 class GetProductsErrorState extends Homestate {
   final String errorMessage;

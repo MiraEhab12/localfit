@@ -27,6 +27,7 @@ class CubitListOfProductOfBrand extends Cubit<Homestate>{
      if(response.statusCode==200){
        var json=jsonDecode(response.body) as List;
      listofproducts=json.map((item)=> Responseproductsofbrands.fromJson(item)).toList();
+       print('تم تحليل وتخزين ${listofproducts.length} منتج بنجاح.');
        emit(GetProductsSuccessfulState());
 
      }else{

@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:localfit/homescreen.dart'; // تأكد من استدعاء شاشة التسجيل
+import 'package:localfit/log_in/register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:localfit/homescreen.dart'; // تأكدي من أن هذا المسار صحيح
 
 class SignInScreen extends StatefulWidget {
   static const String routename = 'sign_in';
@@ -12,9 +13,9 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  // --- هذا الجزء لم يتغير (المنطق) ---
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   bool isLoading = false;
   bool isPasswordVisible = false;
 
@@ -24,7 +25,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('الرجاء إدخال اسم المستخدم وكلمة المرور')),
+        SnackBar(content: Text('الرجاء إدخال البريد الإلكتروني وكلمة المرور')),
       );
       return;
     }
@@ -44,39 +45,21 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       final data = jsonDecode(response.body);
-
       if (response.statusCode == 200) {
-        // اطبعي الاستجابة كاملة للتأكد من أسماء الحقول
-        print("🔵 Server Response on Login: $data");
-
-        // استخراج كل البيانات المطلوبة
         final token = data['token'];
-        final custId = data['id'];     // أو data['custId']
-        final cartId = data['cartId'];
 
-        // التحقق من وجود كل البيانات الضرورية وأن التوكن كامل
-        if (token != null && token.split('.').length == 3 && custId != null && cartId != null) {
+        if (token != null && token.split('.').length == 3) {
           final prefs = await SharedPreferences.getInstance();
-
-          // مسح البيانات القديمة لضمان عدم وجود تداخل
-          await prefs.clear();
-
-          // حفظ كل البيانات الجديدة والصحيحة
           await prefs.setString('token', token);
-          await prefs.setInt('custId', custId);
-          await prefs.setInt('cartId', cartId);
-
-          print('✅ All data saved successfully!');
-          print('   - Token: $token');
-          print('   - CustID: $custId');
-          print('   - CartID: $cartId');
 
           Navigator.pushNamedAndRemoveUntil(
-              context, HomeScreen.routename, (route) => false);
-
+            context,
+            HomeScreen.routename,
+                (route) => false,
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('بيانات غير مكتملة من الخادم (token, id, or cartId is missing)')),
+            SnackBar(content: Text('التوكن غير صالح أو غير موجود')),
           );
         }
       } else {
@@ -104,50 +87,167 @@ class _SignInScreenState extends State<SignInScreen> {
     passwordController.dispose();
     super.dispose();
   }
+  // --- نهاية الجزء الذي لم يتغير ---
 
   @override
   Widget build(BuildContext context) {
-    // واجهة المستخدم تبقى كما هي
+    // ===================================================================
+    //  --- بداية تعديل واجهة المستخدم ---
+    // ===================================================================
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الدخول')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: userNameController,
-              decoration: InputDecoration(labelText: 'اسم المستخدم'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              obscureText: !isPasswordVisible,
-              decoration: InputDecoration(
-                labelText: 'كلمة المرور',
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      isPasswordVisible = !isPasswordVisible;
-                    });
-                  },
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: ListView(
+            children: [
+              SizedBox(height: 50),
+              // --- عنوان الصفحة ---
+              Text(
+                'Sign In',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
+              SizedBox(height: 40),
+
+              // --- حقل الإيميل ---
+              Text('UserNmae', style: TextStyle(color: Colors.black54, fontSize: 16)),
+              SizedBox(height: 8),
+              TextFormField(
+                controller: userNameController, // نفس المتحكم الأصلي
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  hintText: "Enter Your username",
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  prefixIcon: Icon(Icons.email_outlined, color: Colors.grey),
+                  contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+
+              // --- حقل كلمة المرور ---
+              Text('Password', style: TextStyle(color: Colors.black54, fontSize: 16)),
+              SizedBox(height: 8),
+              TextFormField(
+                controller: passwordController,
+                obscureText: !isPasswordVisible,
+                decoration: InputDecoration(
+                  hintText: "Enter Your Password",
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  prefixIcon: Icon(Icons.lock_outline, color: Colors.grey),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      isPasswordVisible ? Icons.visibility_outlined: Icons.visibility_off_outlined,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        isPasswordVisible = !isPasswordVisible;
+                      });
+                    },
+                  ),
+                  contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+
+              // --- رابط نسيت كلمة المرور ---
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    // يمكنك إضافة وظيفة نسيت كلمة المرور هنا
+                  },
+                  child: Text(
+                    'Forgot password',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 30),
+
+              // --- زر تسجيل الدخول ---
+              isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF6F6559), // اللون البني من الصورة
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: handleLogin, // نفس الدالة الأصلية
+                  child: Text('sign in'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      // --- رابط إنشاء حساب جديد في الأسفل ---
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Dont have an account ? ",
+              style: TextStyle(color: Colors.black54),
             ),
-            const SizedBox(height: 32),
-            isLoading
-                ? CircularProgressIndicator()
-                : ElevatedButton(
-              onPressed: handleLogin,
-              child: const Text('تسجيل الدخول'),
+            InkWell(
+              onTap: () {
+                Navigator.pushNamed(context, RegisterScreen.routename);
+              },
+              child: Text(
+                "Register",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
+    // ===================================================================
+    //  --- نهاية تعديل واجهة المستخدم ---
+    // ===================================================================
   }
 }

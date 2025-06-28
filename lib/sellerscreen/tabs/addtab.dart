@@ -111,15 +111,14 @@
 //
 
 
-
+// lib/screens/addtab/addtab.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:localfit/appcolor/appcolors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../cubit/addtabcubit.dart'; // استورد Cubit
+import '../../cubit/addtabcubit.dart';
 
 class AddTab extends StatefulWidget {
   static const String routename = '/add';
@@ -137,7 +136,6 @@ class _AddTabState extends State<AddTab> {
   String description = '';
   double price = 0;
 
-  // قيم ثابتة مؤقتة للـ brandId, catId, stockLevel
   int brandId = 1;
   int catId = 1;
   int stockLevel = 10;
@@ -346,6 +344,8 @@ class _AddTabState extends State<AddTab> {
     );
   }
 }
+
+
 
 
 
