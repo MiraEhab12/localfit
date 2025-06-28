@@ -74,141 +74,141 @@ class _FavTabState extends State<FavTab> {
               final product = favoriteList[index];
               final selectedSize = selectedSizes[index] ?? "Select Size";
 
-              return Container(
-                color: AppColors.whitecolor,
-                width: double.infinity,
-                height: height * 0.19,
-                padding: EdgeInsets.all(8),
-                child: Stack(
-                  children: [
-                    Row(
-                      children: [
-                        Image.network(
-                          "https://localfit.runasp.net${product.productIMGUrl ?? ''}",
-                          width: width * 0.26,
-                          height: height * 0.12,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Icon(Icons.broken_image_outlined),
-                        ),
-                        SizedBox(width: 16),
-                        // هنا خليت الـ Column في Expanded علشان ياخد المساحة المتبقية بشكل مناسب
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(product.producTNAME ?? "",
-                                  style: TextStyle(
-                                      fontSize: 16, fontWeight: FontWeight.bold)),
-                              SizedBox(height: 8),
-                              Text("EGP${product.price}"),
-                              SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  // زرار اختيار المقاس باستخدام Flexible لتجنب overflow
-                                  Flexible(
-                                    flex: 1,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.black,
-                                        side: BorderSide(
-                                            color: Color(0xffE0E0E0), width: 2),
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.zero),
-                                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                                      ),
-                                      onPressed: () {
-                                        _showSizeBottomSheet(index);
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              selectedSize,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(fontSize: 14),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12), // المسافة بين العناصر
+                child: Container(
+                  color: AppColors.whitecolor,
+                  width: double.infinity,
+                  height: height * 0.19,
+                  padding: EdgeInsets.all(8),
+                  child: Stack(
+                    children: [
+                      Row(
+                        children: [
+                          Image.network(
+                            "https://localfitt.runasp.net${product.productIMGUrl ?? ''}",
+                            width: width * 0.26,
+                            height: height * 0.12,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.broken_image_outlined),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(product.producTNAME ?? "",
+                                    style: TextStyle(
+                                        fontSize: 16, fontWeight: FontWeight.bold)),
+                                SizedBox(height: 8),
+                                Text("EGP${product.price}"),
+                                SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      flex: 1,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: Colors.black,
+                                          side: BorderSide(
+                                              color: Color(0xffE0E0E0), width: 2),
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.zero),
+                                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                                        ),
+                                        onPressed: () {
+                                          _showSizeBottomSheet(index);
+                                        },
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                selectedSize,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(fontSize: 14),
+                                              ),
                                             ),
-                                          ),
-                                          Icon(Icons.arrow_drop_down_sharp,
-                                              color: Color(0xffE0E0E0)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 12),
-                                  // زرار "Move to cart" في Flexible عشان يتحجّم تلقائي
-                                  Flexible(
-                                    flex: 2,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.black,
-                                        foregroundColor: Colors.white,
-                                        padding:
-                                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.zero),
-                                      ),
-                                      onPressed: () {
-                                        if (selectedSizes[index] == null) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                  "Please select a size before adding to cart"),
-                                            ),
-                                          );
-                                          return;
-                                        }
-
-                                        final item = ProductWithSizeAndQuantity(
-                                          product: product,
-                                          selectedSize: selectedSizes[index]!,
-                                          quantity: 1,
-                                        );
-
-                                        context.read<CartCubit>().addToCart(item);
-
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "Added to cart with size ${selectedSizes[index]} ✅"),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
-                                      },
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          "Move to cart",
-                                          style: TextStyle(fontSize: 14),
+                                            Icon(Icons.arrow_drop_down_sharp,
+                                                color: Color(0xffE0E0E0)),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              )
-                            ],
+                                    SizedBox(width: 12),
+                                    Flexible(
+                                      flex: 2,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.black,
+                                          foregroundColor: Colors.white,
+                                          padding:
+                                          EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.zero),
+                                        ),
+                                        onPressed: () {
+                                          if (selectedSizes[index] == null) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    "Please select a size before adding to cart"),
+                                              ),
+                                            );
+                                            return;
+                                          }
+
+                                          final item = ProductWithSizeAndQuantity(
+                                            product: product,
+                                            selectedSize: selectedSizes[index]!,
+                                            quantity: 1,
+                                          );
+
+                                          context.read<CartCubit>().addToCart(item);
+
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  "Added to cart with size ${selectedSizes[index]} ✅"),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        },
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            "Move to cart",
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () {
+                            context.read<FavCubit>().removeFromFavorite(product);
+                          },
+                          child: Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                            size: 28,
                           ),
-                        )
-                      ],
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () {
-                          context.read<FavCubit>().removeFromFavorite(product);
-                        },
-                        child: Icon(
-                          Icons.favorite,
-                          color: Colors.red,
-                          size: 28,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -218,3 +218,4 @@ class _FavTabState extends State<FavTab> {
     );
   }
 }
+

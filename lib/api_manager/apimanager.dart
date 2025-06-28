@@ -4,7 +4,8 @@ import 'package:localfit/api_manager/responses/productsofbrands.dart';
 
 class ApiManager {
   // ✅ تسجيل الدخول باستخدام userName فقط
-  Future<Map<String, dynamic>> loginWithUsernameAndPassword(String username, String password) async {
+  Future<Map<String, dynamic>> loginWithUsernameAndPassword(String username,
+      String password) async {
     final response = await http.post(
       Uri.parse('https://localfitt.runasp.net/api/User/login'),
       headers: {'Content-Type': 'application/json'},
@@ -17,13 +18,16 @@ class ApiManager {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return {'success': true, 'token': jsonDecode(response.body)['token']};
     } else {
-      return {'success': false, 'message': jsonDecode(response.body)['message'] ?? 'Login failed'};
+      return {
+        'success': false,
+        'message': jsonDecode(response.body)['message'] ?? 'Login failed'
+      };
     }
   }
 
   // ✅ تسجيل مستخدم جديد
-  Future<Map<String, dynamic>> sendregister(
-      String userName, String email, String password, String role) async {
+  Future<Map<String, dynamic>> sendregister(String userName, String email,
+      String password, String role) async {
     Uri url = Uri.parse("https://localfit.runasp.net/api/user/register");
     try {
       final body = jsonEncode({
@@ -62,12 +66,20 @@ class ApiManager {
     }
   }
 
-  // ✅ جلب المنتجات
-  Future<Responseproductsofbrands> getListOfClothesProductsOfBrands() async {
-    Uri url = Uri.https('localfit.runasp.net', 'api/product/getproducts');
-    http.Response response = await http.get(url);
-    var json = jsonDecode(response.body);
-    Responseproductsofbrands responseProductsofbrands = Responseproductsofbrands.fromJson(json);
-    return responseProductsofbrands;
+  Future<
+      List<Responseproductsofbrands>> getListOfClothesProductsOfBrands() async {
+    Uri url = Uri.parse('https://localfitt.runasp.net/api/product/getproducts');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+
+      return jsonList.map((jsonItem) {
+        return Responseproductsofbrands.fromJson(jsonItem);
+      }).toList();
+    } else {
+      throw Exception(
+          'Failed to load products. Status code: ${response.statusCode}');
+    }
   }
 }

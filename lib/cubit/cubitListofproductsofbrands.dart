@@ -15,7 +15,7 @@ class CubitListOfProductOfBrand extends Cubit<Homestate>{
    try{
      emit(GetProductsLoadingState());
 
-     Uri url= Uri.https('localfit.runasp.net','api/product/getproducts');
+     Uri url= Uri.https('localfitt.runasp.net','api/product/getproducts');
      http.Response response=await http.get(url,headers: {
        'Content-Type': 'application/json',
        'Accept': 'application/json',

@@ -65,7 +65,7 @@ class _ProductdetailsState extends State<Productdetails> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Image.network(
-            "https://localfit.runasp.net${receiveDetails.productIMGUrl ?? ''}",
+            "https://localfitt.runasp.net${receiveDetails.productIMGUrl ?? ''}",
             fit: BoxFit.fill,
             width: width,
             height: height * 0.6,

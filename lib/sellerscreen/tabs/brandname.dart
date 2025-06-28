@@ -1,18 +1,21 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
+import 'package:localfit/sellerscreen/homeseller.dart'; // تأكد من استيراد صفحة الهوم
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:localfit/sellerscreen/homeseller.dart';
+
+// BrandResult class is not used in this file but good to have
+class BrandResult {
+  final String name;
+  final String logoUrl;
+  BrandResult({required this.name, required this.logoUrl});
+}
 
 class CreateBrandScreen extends StatefulWidget {
-  static const String routename = 'create_brand';
-
-  const CreateBrandScreen({Key? key}) : super(key: key);
-
   @override
-  State<CreateBrandScreen> createState() => _CreateBrandScreenState();
+  _CreateBrandScreenState createState() => _CreateBrandScreenState();
 }
 
 class _CreateBrandScreenState extends State<CreateBrandScreen> {
@@ -24,30 +27,6 @@ class _CreateBrandScreenState extends State<CreateBrandScreen> {
   File? _logoFile;
   bool _isLoading = false;
 
-  // دالة لفك الدور من التوكن JWT
-  String? getUserRoleFromToken(String token) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return null;
-
-      final payload = parts[1];
-      var normalized = base64Url.normalize(payload);
-      final payloadMap = json.decode(utf8.decode(base64Url.decode(normalized)));
-
-      if (payloadMap is! Map<String, dynamic>) return null;
-
-      if (payloadMap.containsKey('role')) {
-        return payloadMap['role'];
-      } else if (payloadMap.containsKey('http://schemas.microsoft.com/ws/2008/06/identity/claims/role')) {
-        return payloadMap['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-      }
-      return null;
-    } catch (e) {
-      print('Error decoding token: $e');
-      return null;
-    }
-  }
-
   Future<void> _pickLogo() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -58,11 +37,9 @@ class _CreateBrandScreenState extends State<CreateBrandScreen> {
   }
 
   Future<void> _createBrand() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_logoFile == null) {
+    if (!_formKey.currentState!.validate() || _logoFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a brand logo')),
+        SnackBar(content: Text('Please fill all fields and select a logo')),
       );
       return;
     }
@@ -73,18 +50,11 @@ class _CreateBrandScreenState extends State<CreateBrandScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('jwt_token'); // هنا المفتاح 'jwt_token'
-
-      print('✅ التوكن المسترجع من SharedPreferences:');
-      print(token);
+      final token = prefs.getString('token');
 
       if (token == null) {
-        throw Exception('Authentication token not found. Please log in again.');
+        throw Exception('User is not logged in.');
       }
-
-      // فك الدور وطباعة الدور في الكونسول
-      final role = getUserRoleFromToken(token);
-      print('🛡️ دور المستخدم (Role) من التوكن: $role');
 
       var uri = Uri.parse('https://localfitt.runasp.net/api/Brands/createbrand');
       var request = http.MultipartRequest('POST', uri);
@@ -92,45 +62,47 @@ class _CreateBrandScreenState extends State<CreateBrandScreen> {
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Accept'] = 'application/json';
 
-      request.fields['BrandName'] = nameController.text;
-      request.fields['Description'] = descriptionController.text;
-      request.fields['ContactInfo'] = contactInfoController.text;
-      request.fields['Email'] = emailController.text;
+      request.fields['Brand_Name'] = nameController.text.trim();
+      request.fields['Description'] = descriptionController.text.trim();
+      request.fields['Contact_info'] = contactInfoController.text.trim();
+      request.fields['EMAIL'] = emailController.text.trim();
 
       request.files.add(await http.MultipartFile.fromPath('logoFile', _logoFile!.path));
 
-      print('📤 البيانات المُرسلة:');
-      print('BrandName: ${request.fields['BrandName']}');
-      print('Description: ${request.fields['Description']}');
-      print('ContactInfo: ${request.fields['ContactInfo']}');
-      print('Email: ${request.fields['Email']}');
-      print('عدد الملفات المرفقة: ${request.files.length}');
-      print('📤 الهيدر: ${request.headers}');
-
       var response = await request.send();
-
-      print('🔄 حالة الاستجابة: ${response.statusCode}');
       final responseBody = await response.stream.bytesToString();
-      print('📥 جسم الاستجابة (Response body):\n$responseBody');
 
       if (response.statusCode == 201) {
-        final createdBrand = jsonDecode(responseBody);
+        final decoded = jsonDecode(responseBody);
 
-        await prefs.setInt('brandId', createdBrand['brand_ID']);
-        await prefs.setString('brandName', createdBrand['brand_Name']);
+        // --- التعديل الرئيسي هنا ---
+        // استخراج البيانات من الـ response
+        final brandId = decoded['brandId'];
+        final brandName = decoded['brandName'] ?? nameController.text.trim();
+        final logoUrl = decoded['logoUrl'];
+
+        // التأكد من أن البيانات ليست null قبل الحفظ
+        if (brandId != null) {
+          await prefs.setInt('brandId', brandId); // حفظ الـ ID
+        }
+        await prefs.setString('brandName', brandName);
+        if (logoUrl != null) {
+          await prefs.setString('brandLogo', logoUrl);
+        }
+        // --- نهاية التعديل ---
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Brand created successfully!')),
         );
 
-        Navigator.pushReplacementNamed(context, Homeseller.routename, arguments: true);
-      } else if (response.statusCode == 403) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Access denied (403). You might not have permission.')),
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => Homeseller()),
+              (route) => false,
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create brand. Status: ${response.statusCode}')),
+          SnackBar(content: Text('Failed to create brand: $responseBody')),
         );
       }
     } catch (e) {
@@ -138,9 +110,11 @@ class _CreateBrandScreenState extends State<CreateBrandScreen> {
         SnackBar(content: Text('An error occurred: $e')),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -149,63 +123,79 @@ class _CreateBrandScreenState extends State<CreateBrandScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Create Your Brand')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Text("Let's set up your brand", style: Theme.of(context).textTheme.headlineSmall),
-              ),
-              SizedBox(height: 20),
               GestureDetector(
                 onTap: _pickLogo,
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: _logoFile != null ? FileImage(_logoFile!) : null,
-                  child: _logoFile == null ? Icon(Icons.add_a_photo, size: 50, color: Colors.grey[600]) : null,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    shape: BoxShape.circle,
+                  ),
+                  child: _logoFile == null
+                      ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_a_photo, size: 40, color: Colors.grey[600]),
+                      SizedBox(height: 4),
+                      Text('Add Logo', style: TextStyle(color: Colors.grey[600])),
+                    ],
+                  )
+                      : ClipOval(
+                    child: Image.file(
+                      _logoFile!,
+                      fit: BoxFit.contain,
+                      width: 120,
+                      height: 120,
+                    ),
+                  ),
                 ),
               ),
-              Center(child: Text('Tap to add logo')),
-              SizedBox(height: 30),
+              SizedBox(height: 24),
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(labelText: 'Brand Name', border: OutlineInputBorder()),
-                validator: (value) => value!.isEmpty ? 'Please enter a brand name' : null,
+                validator: (value) => value!.isEmpty ? 'Enter brand name' : null,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 16),
               TextFormField(
                 controller: descriptionController,
-                decoration: InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
                 maxLines: 3,
-                validator: (value) => value!.isEmpty ? 'Please enter a description' : null,
+                decoration: InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+                validator: (value) => value!.isEmpty ? 'Enter description' : null,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 16),
               TextFormField(
                 controller: contactInfoController,
-                decoration: InputDecoration(labelText: 'Contact Info', border: OutlineInputBorder()),
-                validator: (value) => value!.isEmpty ? 'Please enter contact info' : null,
+                decoration: InputDecoration(labelText: 'Contact Info (Phone/Website)', border: OutlineInputBorder()),
+                validator: (value) => value!.isEmpty ? 'Enter contact info' : null,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 16),
               TextFormField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
                 keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(labelText: 'Public Email', border: OutlineInputBorder()),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Please enter an email';
-                  if (!value.contains('@')) return 'Please enter a valid email';
+                  if (value == null || value.isEmpty) return 'Enter email';
+                  if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) return 'Enter a valid email';
                   return null;
                 },
               ),
-              SizedBox(height: 40),
+              SizedBox(height: 24),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
                 onPressed: _isLoading ? null : _createBrand,
-                style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 15)),
                 child: _isLoading
                     ? CircularProgressIndicator(color: Colors.white)
-                    : Text('Create Brand', style: TextStyle(fontSize: 18)),
+                    : Text('Create Brand'),
               ),
             ],
           ),
@@ -214,20 +204,6 @@ class _CreateBrandScreenState extends State<CreateBrandScreen> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // import 'package:flutter/material.dart';

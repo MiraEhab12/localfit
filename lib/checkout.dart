@@ -1,14 +1,9 @@
-// ✅ Full Checkout & Order Logic in Flutter - With Cart Items & Order Details
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:localfit/thankyou.dart';
-// <-- assume you manage cart items via Cubit
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'cubit/cartcubit.dart';
 import 'orderdetailes.dart';
+import 'package:localfit/log_in/sign_in.dart'; // تأكد إن الملف دا موجود
 
 class AddressStorage {
   static Future<void> saveAddress(String country, String address) async {
@@ -40,17 +35,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String? selectedPaymentMethod;
   String? selectedCountry;
   final addressController = TextEditingController();
+  int? cartId;
+  int? custId;
 
   final List<String> countries = [
     'Cairo', 'Giza', 'Minya', 'Beni Suef',
-    'Nasr City','Maadi','Faisal','6th of October','Sheikh Zayed','Dokki',
-    'Mohandessin','Al Rehab','Al Shorouk','Fayoum'
+    'Nasr City', 'Maadi', 'Faisal', '6th of October',
+    'Sheikh Zayed', 'Dokki', 'Mohandessin',
+    'Al Rehab', 'Al Shorouk', 'Fayoum'
   ];
 
   @override
   void initState() {
     super.initState();
     loadSavedAddress();
+    loadCartAndCustomerIds();
+  }
+
+  Future<void> loadCartAndCustomerIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      cartId = prefs.getInt('cartId');
+      custId = prefs.getInt('custId');
+    });
   }
 
   void loadSavedAddress() async {
@@ -69,7 +76,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (selectedCountry == null || selectedCountry!.isEmpty ||
         addressController.text.trim().isEmpty ||
         selectedPaymentMethod == null) {
-      showMessage('Please complete all required fields.');
+      showMessage('من فضلك أكمل جميع الحقول المطلوبة.');
+      return;
+    }
+
+    if (cartId == null || custId == null) {
+      showMessage('خطأ في بيانات المستخدم أو السلة. يرجى تسجيل الدخول مجددًا.');
       return;
     }
 
@@ -78,76 +90,74 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
+      print("🔐 Current Token: $token");
+
       if (token.isEmpty) {
-        showMessage('Please log in to proceed.');
+        showMessage('من فضلك قم بتسجيل الدخول أولاً.');
+        Navigator.pushReplacementNamed(context, SignInScreen.routename);
         return;
       }
 
-      // احضر المنتجات من الكارت (Cubit)
-      final cartItems = context.read<CartCubit>().state;
-      final itemsJson = cartItems.map((item) => {
-        "productId": item.product.producTID,
-        "quantity": item.quantity
-      }).toList();
+      final bodyJson = jsonEncode({
+        "cartId": cartId,
+        "custid": custId,
+        "shippingAddress": addressController.text.trim(),
+      });
 
-      // 1. Create order
-      final orderResponse = await http.post(
-        Uri.parse('https://localfitt.runasp.net/api/Order'),
+      print("🔵 Sending Order Creation Request: $bodyJson");
+
+      final response = await http.post(
+        Uri.parse('https://localfitt.runasp.net/api/Order/createorder'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          "country": selectedCountry,
-          "address": addressController.text.trim(),
-          "items": itemsJson
-        }),
+        body: bodyJson,
       );
 
-      if (orderResponse.statusCode != 200 && orderResponse.statusCode != 201) {
-        showMessage('Order creation failed ❌');
+      print("🟢 Status Code: ${response.statusCode}");
+      print("🟡 Response Body: ${response.body}");
+
+      if (response.statusCode == 401) {
+        showMessage("انتهت صلاحية الجلسة. الرجاء تسجيل الدخول مرة أخرى.");
+        Navigator.pushReplacementNamed(context, SignInScreen.routename);
         return;
       }
 
-      final orderData = jsonDecode(orderResponse.body);
-      final orderId = orderData['orderId'];
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        showMessage("فشل في إنشاء الطلب. تأكد من تسجيل الدخول وتوفر بيانات صحيحة.");
+        return;
+      }
+
+      final data = jsonDecode(response.body);
+      final orderId = data['orderId'] ?? data['id'] ?? data['orderID'];
 
       if (orderId == null) {
-        showMessage('Order ID not found');
+        showMessage("لم يتم العثور على رقم الطلب.");
         return;
       }
 
-      // 2. Create payment intent
-      final paymentResponse = await http.post(
-        Uri.parse('https://localfitt.runasp.net/api/payment/create-payment-intent'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
-        },
-        body: jsonEncode({
-          "orderId": orderId,
-          "amount": widget.totalAmount,
-          "currency": "egp",
-          "payment_method": selectedPaymentMethod
-        }),
+      final username = prefs.getString('username') ?? 'User';
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OrderDetailsScreen(
+            orderId: orderId,
+            username: username,
+            shippingAddress: addressController.text.trim(),
+            totalAmount: widget.totalAmount,
+          ),
+        ),
       );
-
-      if (paymentResponse.statusCode == 200 || paymentResponse.statusCode == 201) {
-        // 💡 ممكن تعرض صفحة تفاصيل الأوردر لو حبيت
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => OrderDetailsScreen(orderId: orderId)));
-      } else {
-        showMessage('Payment failed ❌');
-      }
     } catch (e) {
-      showMessage('Error: $e');
+      showMessage('حدث خطأ أثناء إنشاء الطلب: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Checkout")),
+      appBar: AppBar(title: Text("إتمام الشراء")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
@@ -160,34 +170,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   child: Text(country),
                 )).toList(),
                 onChanged: (val) => setState(() => selectedCountry = val),
-                decoration: InputDecoration(labelText: 'City', border: OutlineInputBorder()),
+                decoration: InputDecoration(labelText: 'المدينة', border: OutlineInputBorder()),
               ),
               SizedBox(height: 16),
               TextFormField(
                 controller: addressController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  labelText: 'Address',
+                  labelText: 'العنوان',
                   border: OutlineInputBorder(),
                 ),
               ),
               SizedBox(height: 16),
               RadioListTile<String>(
-                value: 'Cash On Delivery',
+                value: 'Cash',
                 groupValue: selectedPaymentMethod,
                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
-                title: Text("Cash On Delivery"),
+                title: Text("الدفع عند الاستلام"),
               ),
               RadioListTile<String>(
-                value: 'Credit/Debit Card',
+                value: 'Card',
                 groupValue: selectedPaymentMethod,
                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
-                title: Text("Credit/Debit Card"),
+                title: Text("بطاقة إئتمان/خصم"),
               ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: confirmOrder,
-                child: Text("Confirm Payment"),
+                child: Text("تأكيد الدفع"),
               ),
             ],
           ),

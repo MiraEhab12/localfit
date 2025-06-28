@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/log_in/otpregister.dart';
 import 'package:localfit/log_in/sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const String routename = 'register';
@@ -50,6 +51,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final cartId = data['cartId'];
+        final custId = data['custid'];
+        final token = data['token']; // ⬅️ تأكد السيرفر بيرجعه
+        final username = data['userName'] ?? name;
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('cartId', cartId);
+        await prefs.setInt('custId', custId);
+        await prefs.setString('token', token);         // ⬅️ تخزين التوكن
+        await prefs.setString('username', username);   // ⬅️ مفيد للعرض بعدين
 
         Navigator.pushReplacement(
           context,
@@ -81,8 +93,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar:
-      AppBar(title: Text('Register'),backgroundColor: Colors.white,centerTitle: true,),
+      appBar: AppBar(
+        title: Text('Register'),
+        backgroundColor: Colors.white,
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -142,23 +157,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   : ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.maindarkcolor,
-                  foregroundColor: Colors.white
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: registerUser,
                 child: Text("Register"),
               ),
-              SizedBox(
-                height: 350,
-              ),
+              SizedBox(height: 350),
               Padding(
                 padding: const EdgeInsets.only(left: 70),
                 child: InkWell(
-                    onTap: (){
-                      Navigator.pushNamed(context, SignInScreen.routename);
-                    },
-                    child: Text("Already have an account ?Sign In",style: TextStyle(
-                      color: AppColors.maindarkcolor
-                    ),)),
+                  onTap: () {
+                    Navigator.pushNamed(context, SignInScreen.routename);
+                  },
+                  child: Text(
+                    "Already have an account? Sign In",
+                    style: TextStyle(color: AppColors.maindarkcolor),
+                  ),
+                ),
               )
             ],
           ),

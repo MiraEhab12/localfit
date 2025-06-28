@@ -1,17 +1,22 @@
+import 'dart:convert';
+import 'dart:math';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:localfit/sellerscreen/tabs/proftab/admin%20login.dart';
-import 'package:localfit/tabs/prof/loginasseller.dart';
+import 'package:http/http.dart' as http;
+import 'package:localfit/log_in/sign_in.dart';
+import 'package:localfit/tabs/prof/elementsofprofile/contactus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:localfit/appassets/appassets.dart';
 import 'package:localfit/appcolor/appcolors.dart';
 import 'package:localfit/appfonts/appfonts.dart';
 import 'package:localfit/sellerscreen/homeseller.dart';
-import 'package:localfit/sellerscreen/tabs/brandname.dart'; // CreateBrandScreen // << أضف صفحة تسجيل دخول البائع هنا
+import 'package:localfit/sellerscreen/tabs/brandname.dart';
+import 'package:localfit/sellerscreen/tabs/proftab/admin%20login.dart';
 import 'package:localfit/tabs/prof/elementsofprofile/help.dart';
 import 'package:localfit/tabs/prof/elementsofprofile/personaldetailedscreen.dart';
 
 class ProfTab extends StatelessWidget {
-  List<String> imageoficons = [
+  final List<String> imageoficons = [
     Appassets.bag,
     Appassets.ret,
     Appassets.personal,
@@ -20,7 +25,7 @@ class ProfTab extends StatelessWidget {
     Appassets.logout
   ];
 
-  List<String> nameoficons = [
+  final List<String> nameoficons = [
     'My purchases',
     'Online returns',
     'Personal details',
@@ -64,8 +69,6 @@ class ProfTab extends StatelessWidget {
               ),
             ),
             SizedBox(height: 18),
-
-            // القائمة
             Expanded(
               child: ListView.builder(
                 itemCount: nameoficons.length,
@@ -74,12 +77,21 @@ class ProfTab extends StatelessWidget {
                     onTap: () {
                       if (index == 2) {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => Personaldetailedscreen()));
+                          context,
+                          MaterialPageRoute(builder: (_) => Personaldetailedscreen()),
+                        );
                       } else if (index == 3) {
                         Navigator.push(
-                            context, MaterialPageRoute(builder: (_) => Help()));
+                          context,
+                          MaterialPageRoute(builder: (_) => Help()),
+                        );
+                      }else if (index == 4) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => Contactus()),
+                        );
+                      }else if (index == 5) {
+                       Navigator.pushNamed(context, SignInScreen.routename);
                       }
                     },
                     child: Padding(
@@ -105,36 +117,11 @@ class ProfTab extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 40),
               child: InkWell(
                 onTap: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  final token = prefs.getString('token');
-                  final userType = prefs.getString('userType'); // نوع المستخدم
-                  final savedBrandName = prefs.getString('brandName');
-
-                  print('Token: $token');
-                  print('UserType: $userType');
-                  print('BrandName: $savedBrandName');
-
-                  if (token == null || token.isEmpty || userType != 'seller') {
-                    // مش مسجل دخول كبائع
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => AdminLoginScreen()),
-                    );
-                    return;
-                  }
-
-                  if (savedBrandName == null || savedBrandName.isEmpty) {
-                    // مسجل دخول كبائع بس ما عندوش براند
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => CreateBrandScreen()),
-                    );
-                  } else {
-                    // مسجل دخول كبائع وعنده براند
-                    Navigator.pushNamed(context, Homeseller.routename, arguments: true);
-                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => CreateBrandScreen()),
+                  );
                 },
-
                 child: Text(
                   "sell with us",
                   style: Appfonts.interfont24weight400.copyWith(

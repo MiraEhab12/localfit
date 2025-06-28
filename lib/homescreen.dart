@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:localfit/appcolor/appcolors.dart';
@@ -8,6 +7,7 @@ import 'package:localfit/tabs/fav/fav_tab.dart';
 import 'package:localfit/tabs/prof/prof_tab.dart';
 import 'package:localfit/tabs/shop/shop_tab.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String routename = 'home';
@@ -20,12 +20,26 @@ class _HomeScreenState extends State<HomeScreen> {
   GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
   int selectedindex = 0;
 
-  // عدد التابات لازم يتطابق مع عدد الايقونات في CurvedNavigationBar - 1 (لان 0 للصفحة الرئيسية)
   List<Widget> tabs = [
     FavTab(),
     ShopTab(),
     ProfTab(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _saveDebugData();
+  }
+
+  Future<void> _saveDebugData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.testtoken');
+    await prefs.setInt('cartId', 1);
+    await prefs.setInt('custId', 6);
+    debugPrint('Dummy token/cartId/custId saved.');
+  }
 
   @override
   Widget build(BuildContext context) {
