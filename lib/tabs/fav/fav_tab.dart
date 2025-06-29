@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:localfit/api_manager/responses/productsofbrands.dart';
 import 'package:localfit/appcolor/appcolors.dart';
-import 'package:localfit/cubit/favcubit.dart';
 import '../../clothesofwomen/productwithsize.dart';
+ // تأكد من استدعاء CartCubit
 import '../../cubit/cartcubit.dart';
+import '../../cubit/favcubit.dart';
 
 class FavTab extends StatefulWidget {
   @override
@@ -27,7 +28,7 @@ class _FavTabState extends State<FavTab> {
               return Column(
                 children: [
                   ListTile(
-                    title: Text(size),
+                    title: Center(child: Text(size)),
                     onTap: () {
                       setState(() {
                         selectedSizes[index] = size;
@@ -62,10 +63,11 @@ class _FavTabState extends State<FavTab> {
         builder: (context, favoriteList) {
           if (favoriteList.isEmpty) {
             return Center(
-                child: Text(
-                  "No favorites yet",
-                  style: TextStyle(fontSize: 22),
-                ));
+              child: Text(
+                "No favorites yet",
+                style: TextStyle(fontSize: 22),
+              ),
+            );
           }
 
           return ListView.builder(
@@ -75,7 +77,7 @@ class _FavTabState extends State<FavTab> {
               final selectedSize = selectedSizes[index] ?? "Select Size";
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 12), // المسافة بين العناصر
+                padding: const EdgeInsets.only(bottom: 12),
                 child: Container(
                   color: AppColors.whitecolor,
                   width: double.infinity,
@@ -103,7 +105,7 @@ class _FavTabState extends State<FavTab> {
                                     style: TextStyle(
                                         fontSize: 16, fontWeight: FontWeight.bold)),
                                 SizedBox(height: 8),
-                                Text("EGP${product.price}"),
+                                Text("EGP ${product.price ?? 'N/A'}"),
                                 SizedBox(height: 8),
                                 Row(
                                   children: [
@@ -145,8 +147,7 @@ class _FavTabState extends State<FavTab> {
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.black,
                                           foregroundColor: Colors.white,
-                                          padding:
-                                          EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                           shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.zero),
                                         ),
@@ -167,7 +168,10 @@ class _FavTabState extends State<FavTab> {
                                             quantity: 1,
                                           );
 
+                                          // ===================================
+                                          // *** هذا هو السطر الذي تم إضافته ***
                                           context.read<CartCubit>().addToCart(item);
+                                          // ===================================
 
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
@@ -218,4 +222,3 @@ class _FavTabState extends State<FavTab> {
     );
   }
 }
-
